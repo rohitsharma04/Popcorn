@@ -4,35 +4,35 @@ import android.app.Activity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.bitshifters.rohit.popcorn.dummy.DummyContent;
+import com.bitshifters.rohit.popcorn.api.Movie;
+import com.bitshifters.rohit.popcorn.api.MoviesService;
+import com.bitshifters.rohit.popcorn.util.Utility;
+import com.squareup.picasso.Picasso;
 
 /**
  * A fragment representing a single Movie detail screen.
- * This fragment is either contained in a {@link MovieListActivity}
+ * This fragment is either contained in a {@link MainActivity}
  * in two-pane mode (on tablets) or a {@link MovieDetailActivity}
  * on handsets.
  */
 public class MovieDetailFragment extends Fragment {
-    /**
-     * The fragment argument representing the item ID that this fragment
-     * represents.
-     */
-    public static final String ARG_ITEM_ID = "item_id";
+    private static final String TAG = MovieDetailFragment.class.getSimpleName();
 
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private DummyContent.DummyItem mItem;
+    public static final String ARG_MOVIE = "arg_movie";
+    private Movie mMovie;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
+    private TextView mTitle,mReleaseDate,mOverview,mVoteAverageText;
+    private RatingBar mVoteAverage;
+    private ImageView mPosterPortrait, mPosterLandscape;
+
     public MovieDetailFragment() {
     }
 
@@ -40,28 +40,44 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
+        if (getArguments().containsKey(ARG_MOVIE)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            Log.v(TAG,"mMovie :"+getArguments().getSerializable(ARG_MOVIE));
+            mMovie = (Movie) getArguments().getSerializable(ARG_MOVIE);
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.content);
+            if (appBarLayout != null && mMovie != null) {
+                appBarLayout.setTitle(mMovie.getTitle());
             }
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.movie_detail, container, false);
+        if (mMovie != null) {
+            //Initialize Widgets
+            mTitle = (TextView) rootView.findViewById(R.id.tvTitle);
+            mReleaseDate = (TextView) rootView.findViewById(R.id.tvReleaseDate);
+            mOverview = (TextView) rootView.findViewById(R.id.tvOverview);
+            mVoteAverageText = (TextView) rootView.findViewById(R.id.tvVote);
+            mVoteAverage = (RatingBar) rootView.findViewById(R.id.rbVote);
+            mPosterPortrait = (ImageView) rootView.findViewById(R.id.ivPosterPortrait);
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.movie_detail)).setText(mItem.details);
+            //SetValues
+            mTitle.setText(mMovie.getTitle());
+            mReleaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
+            mOverview.setText(mMovie.getOverview());
+            mVoteAverage.setRating(mMovie.getVoteAverage() / 2);
+            mVoteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
+
+            Picasso.with(rootView.getContext())
+                    .load(MoviesService.IMAGE_BASE_URL + "w185/" + mMovie.getPosterPath())
+                    .into(mPosterPortrait);
+
         }
 
         return rootView;
