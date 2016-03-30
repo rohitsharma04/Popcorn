@@ -1,15 +1,19 @@
 <resources>
     <string name="app_name">Popcorn</string>
     <string name="title_movie_detail">Movie Detail</string>
-    <string name="sort_by">Sort By</string>
+
     <string name="movie_title">Movie Title</string>
     <string name="movie_overview">Fearing the actions of a god-like Super Hero left unchecked, Gotham City’s own formidable, forceful vigilante takes on Metropolis’s most revered, modern-day savior, while the world wrestles with what sort of hero it really needs. And with Batman and Superman at war with one another, a new threat quickly arises, putting mankind in greater danger than it’s ever known before.</string>
     <string name="release_date">22 March 2016</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="rating" formatted="false">%.2f/10</string>
 
-    <string-array name="sorting_options">
-        <item>popular</item>
-        <item>top_rated</item>
-    </string-array>
+    <string name="sort_by">Sort By</string>
+    <string name="sort_popularity">Popular</string>
+    <string name="sort_rating">Top Rated</string>
+    <string name="sort_now_playing">Now Playing</string>
+    <string name="sort_upcoming">Upcoming</string>
+
+    <string name="portrait_poster_size_code">w185/</string>
+    <string name="landscape_poster_size_code">w342/</string>
 </resources>

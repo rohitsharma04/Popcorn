@@ -15,9 +15,9 @@ import com.bitshifters.rohit.popcorn.MovieDetailFragment;
 import com.bitshifters.rohit.popcorn.R;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MoviesService;
+import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -26,22 +26,31 @@ import java.util.List;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
         private final List<Movie> mValues;
-        private MainActivity mActivity;
+        private MainActivity mMainActivity;
 
-        public MovieAdapter(MainActivity activity, List<Movie> items) {
+        public MovieAdapter(final MainActivity activity, List<Movie> items) {
             mValues = items;
-            mActivity = activity;
+            mMainActivity = activity;
         }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_list_content, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).
+                    inflate(R.layout.movie_list_content, parent, false);
             return new ViewHolder(view);
         }
 
+        //When Sorting criteria is changed
         public void changeDataSet(List<Movie> items){
-            //clear first for changes
-            mValues.clear();//remove for pagination
+            //deleting old movies
+            mValues.clear();
+            mValues.addAll(items);
+            notifyDataSetChanged();
+
+        }
+
+        //When LoadMore is is called
+        public void addDataSet(List<Movie> items){
             mValues.addAll(items);
             notifyDataSetChanged();
         }
@@ -51,30 +60,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             holder.mItem = mValues.get(position);
 
             //Loading Image
-            Picasso.with(mActivity)
-                    .load(MoviesService.IMAGE_BASE_URL +"w185/"+holder.mItem.getPosterPath())
+            Picasso.with(mMainActivity)
+                    .load(Utility.getPortraitPosterUrl(mMainActivity,holder.mItem.getPosterPath()))
+                    .error(R.drawable.portrait_poster_not_found)
                     .into(holder.mPosterPortrait);
 
+            //Setting OnClickListener
+            holder.mView.setOnClickListener(holder);
 
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mActivity.mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putSerializable(MovieDetailFragment.ARG_MOVIE, holder.mItem);
-                        MovieDetailFragment fragment = new MovieDetailFragment();
-                        fragment.setArguments(arguments);
-                        mActivity.getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.movie_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, MovieDetailActivity.class);
-                        intent.putExtra(MovieDetailFragment.ARG_MOVIE, holder.mItem);
-                        context.startActivity(intent);
-                    }
-                }
-            });
+            //For Two Pane View for first time setup
+            if(mMainActivity.ismTwoPane() && position == 0){
+                holder.onClick(holder.mView);
+            }
         }
 
         @Override
@@ -82,7 +79,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             return mValues.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             public final View mView;
             public Movie mItem;
             public ImageView mPosterPortrait;
@@ -93,6 +90,25 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                 mPosterPortrait = (ImageView) view.findViewById(R.id.ivPosterPortrait);
             }
 
+            @Override
+            public void onClick(View v) {
+                //Loading fragment in the MainActivity in Two Pane Mode
+                if (mMainActivity.ismTwoPane()) {
+                    Bundle arguments = new Bundle();
+                    arguments.putSerializable(MovieDetailFragment.ARG_MOVIE, mItem);
+                    MovieDetailFragment fragment = new MovieDetailFragment();
+                    fragment.setArguments(arguments);
+                    mMainActivity.getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.movie_detail_container, fragment)
+                            .commit();
+                } else {
+                    //Starting Details Activity
+                    Context context = v.getContext();
+                    Intent intent = new Intent(context, MovieDetailActivity.class);
+                    intent.putExtra(MovieDetailFragment.ARG_MOVIE, mItem);
+                    context.startActivity(intent);
+                }
+            }
         }
     }
 
