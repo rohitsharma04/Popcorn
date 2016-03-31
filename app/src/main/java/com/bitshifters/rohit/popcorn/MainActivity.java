@@ -122,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
         //Fetching Movies for new Preference
         fetchMovies(FIRST_PAGE);
         setToolbarSubtitle();
+        //resetting position
+        setmPosition(0);
     }
 
     private void setToolbarSubtitle(){
