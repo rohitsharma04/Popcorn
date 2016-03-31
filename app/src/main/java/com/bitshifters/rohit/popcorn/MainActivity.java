@@ -199,7 +199,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(Call<MovieServiceResponse> call, Response<MovieServiceResponse> response) {
-                List<Movie> movieList = response.body().getMovies();
+                List<Movie> movieList = new ArrayList<Movie>();
+                if(response.body() != null) {
+                    movieList = response.body().getMovies();
+                }
                 //Saving the movies data for restoring instance
                 mMovieServiceResponse.movies.addAll(movieList);
                 if (movieList != null) {
