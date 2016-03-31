@@ -14,7 +14,6 @@ import com.bitshifters.rohit.popcorn.MovieDetailActivity;
 import com.bitshifters.rohit.popcorn.MovieDetailFragment;
 import com.bitshifters.rohit.popcorn.R;
 import com.bitshifters.rohit.popcorn.api.Movie;
-import com.bitshifters.rohit.popcorn.api.MoviesService;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
 
@@ -58,6 +57,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
+            holder.position = position;
 
             //Loading Image
             Picasso.with(mMainActivity)
@@ -69,7 +69,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             holder.mView.setOnClickListener(holder);
 
             //For Two Pane View for first time setup
-            if(mMainActivity.ismTwoPane() && position == 0){
+            if(mMainActivity.ismTwoPane() && position == mMainActivity.getmPosition()){
                 holder.onClick(holder.mView);
             }
         }
@@ -83,6 +83,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             public final View mView;
             public Movie mItem;
             public ImageView mPosterPortrait;
+            public int position;
 
             public ViewHolder(View view) {
                 super(view);
@@ -92,7 +93,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
             @Override
             public void onClick(View v) {
-                //Loading fragment in the MainActivity in Two Pane Mode
+
+                //Loading fragment in the MainActivity in Two Pane Mode and storing position
                 if (mMainActivity.ismTwoPane()) {
                     Bundle arguments = new Bundle();
                     arguments.putSerializable(MovieDetailFragment.ARG_MOVIE, mItem);
@@ -101,6 +103,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                     mMainActivity.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.movie_detail_container, fragment)
                             .commit();
+                    mMainActivity.setmPosition(position);
+
                 } else {
                     //Starting Details Activity
                     Context context = v.getContext();

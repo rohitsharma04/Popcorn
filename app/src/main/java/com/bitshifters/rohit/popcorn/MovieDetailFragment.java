@@ -39,7 +39,6 @@ public class MovieDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments().containsKey(ARG_MOVIE)) {
-//            Log.v(TAG,"mMovie :"+getArguments().getSerializable(ARG_MOVIE));
             mMovie = (Movie) getArguments().getSerializable(ARG_MOVIE);
 
             Activity activity = this.getActivity();
@@ -47,7 +46,6 @@ public class MovieDetailFragment extends Fragment {
             if (appBarLayout != null && mMovie != null) {
                 appBarLayout.setTitle(mMovie.getTitle());
             }
-
         }
     }
 
@@ -77,7 +75,7 @@ public class MovieDetailFragment extends Fragment {
                     .into(mPosterPortrait);
 
         }
-
         return rootView;
     }
+
 }

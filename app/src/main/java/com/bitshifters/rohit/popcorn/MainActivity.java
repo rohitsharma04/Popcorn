@@ -39,12 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String ARG_MOVIE_SERVICE_RESPONSE = "arg_movie_service_response";
     private static final int FIRST_PAGE = 1;
+    private static final String LIST_POSITION = "listPosition";
 
     private Toolbar mToolbar;
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
 
     private boolean mTwoPane;
+    private int mPosition = 0;
 
     private MovieAdapter mMovieAdapter;
     private MovieServiceResponse mMovieServiceResponse;
@@ -68,6 +70,11 @@ public class MainActivity extends AppCompatActivity {
             mMovieServiceResponse =
                     (MovieServiceResponse) savedInstanceState.getSerializable(ARG_MOVIE_SERVICE_RESPONSE);
             mMovieAdapter.changeDataSet(mMovieServiceResponse.getMovies());
+
+            if(savedInstanceState.containsKey(ARG_MOVIE_SERVICE_RESPONSE)) {
+                mPosition = savedInstanceState.getInt(LIST_POSITION);
+            }
+
         }else{
             //fetch Movie from the api
             fetchMovies(FIRST_PAGE);
@@ -96,9 +103,6 @@ public class MainActivity extends AppCompatActivity {
         setupRecyclerView(mRecyclerView);
     }
 
-    public boolean ismTwoPane() {
-        return mTwoPane;
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -159,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(ARG_MOVIE_SERVICE_RESPONSE, mMovieServiceResponse);
+        outState.putInt(LIST_POSITION, mPosition);
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -200,13 +205,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<MovieServiceResponse> call, Response<MovieServiceResponse> response) {
                 List<Movie> movieList = new ArrayList<Movie>();
-                if(response.body() != null) {
+                if (response.body() != null) {
                     movieList = response.body().getMovies();
                 }
                 //Saving the movies data for restoring instance
                 mMovieServiceResponse.movies.addAll(movieList);
                 if (movieList != null) {
-                    if(page == FIRST_PAGE)
+                    if (page == FIRST_PAGE)
                         mMovieAdapter.changeDataSet(movieList);
                     else
                         mMovieAdapter.addDataSet(movieList);
@@ -219,9 +224,22 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
                 //Hiding progress bar
                 mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(getApplicationContext(),"Failed to Fetch Movies",Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Failed to Fetch Movies", Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    //For Using when state is restored
+    public int getmPosition() {
+        return mPosition;
+    }
+
+    public void setmPosition(int mPosition) {
+        this.mPosition = mPosition;
+    }
+
+    public boolean ismTwoPane() {
+        return mTwoPane;
     }
 
 }
