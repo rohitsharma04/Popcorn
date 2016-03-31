@@ -6,7 +6,8 @@
         android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        card_view:cardElevation="5dp"
+        android:elevation="@dimen/cardview_elevation"
+        android:translationZ="@dimen/cardview_translationZ"
         android:layout_margin="5dp">
 
     <ImageView
@@ -14,6 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop" />
 
 </android.support.v7.widget.CardView>

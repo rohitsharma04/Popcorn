@@ -4,6 +4,10 @@
     <dimen name="item_width">250dp</dimen>
     <dimen name="text_margin">16dp</dimen>
 
+    <dimen name="details_cardview_margin">2dp</dimen>
+    <dimen name="cardview_elevation">5dp</dimen>
+    <dimen name="cardview_translationZ">10dp</dimen>
+
     <integer name="number_of_stars">5</integer>
     <integer name="movie_list_gridview_rows">2</integer>
 </resources>
