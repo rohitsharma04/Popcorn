@@ -1,18 +1,18 @@
 package com.bitshifters.rohit.popcorn;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.bitshifters.rohit.popcorn.api.Movie;
-import com.bitshifters.rohit.popcorn.api.MoviesService;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Created by rohit on 29/3/16.
@@ -20,13 +20,18 @@ import com.squareup.picasso.Picasso;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
-    private ImageView mPosterLandscape;
+    @Bind(R.id.ivPosterLandscape) ImageView posterLandscape;
+    @Bind(R.id.detail_toolbar) Toolbar toolbar;
+
     private Movie mMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
+
+        //Binding Views
+        ButterKnife.bind(this);
 
         initializeEverything();
 
@@ -48,16 +53,15 @@ public class MovieDetailActivity extends AppCompatActivity {
                     .commit();
         }
 
-        if(mMovie != null && mPosterLandscape != null) {
+        if(mMovie != null && posterLandscape != null) {
             Picasso.with(getApplicationContext())
                     .load(Utility.getLandscapePosterUrl(this,mMovie.backdropPath))
-                    .into(mPosterLandscape);
+                    .into(posterLandscape);
         }
     }
 
     private void initializeEverything(){
         //Setting up Toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
         if(toolbar != null) {
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -72,9 +76,6 @@ public class MovieDetailActivity extends AppCompatActivity {
         if(actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
-        //connecting posterLandsscape Imageview
-        mPosterLandscape = (ImageView) findViewById(R.id.ivPosterLandscape);
     }
 
     @Override

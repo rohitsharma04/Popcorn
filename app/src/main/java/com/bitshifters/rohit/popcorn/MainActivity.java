@@ -24,6 +24,8 @@ import com.bitshifters.rohit.popcorn.util.Utility;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -41,9 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int FIRST_PAGE = 1;
     private static final String LIST_POSITION = "listPosition";
 
-    private Toolbar mToolbar;
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
+    @Bind(R.id.toolbar) Toolbar toolbar;
+    @Bind(R.id.pbLoadingSpinner) ProgressBar progressBar;
+    @Bind(R.id.movie_list) RecyclerView recyclerView;
 
     private boolean mTwoPane;
     private int mPosition = 0;
@@ -57,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ButterKnife.bind(this);
 
         initializeEverything();
 
@@ -86,21 +90,15 @@ public class MainActivity extends AppCompatActivity {
         mMovieServiceResponse = new MovieServiceResponse();
         mMovieServiceResponse.movies = new ArrayList<>();
 
-        //Initializing Loading Spinner
-        mProgressBar = (ProgressBar) findViewById(R.id.pbLoadingSpinner);
-
-        //Initializing and Setting up Toolbar
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-        mToolbar.setTitle(getTitle());
-        mToolbar.setLogo(R.mipmap.ic_launcher);
-
+        //Setting up Toolbar
+        setSupportActionBar(toolbar);
+        toolbar.setTitle(getTitle());
+        toolbar.setLogo(R.mipmap.ic_launcher);
         //ToobarSubititle
         setToolbarSubtitle();
 
-        //Initializing and Setting up recycler view
-        mRecyclerView = (RecyclerView) findViewById(R.id.movie_list);
-        setupRecyclerView(mRecyclerView);
+        //Setting up recycler view
+        setupRecyclerView(recyclerView);
     }
 
 
@@ -129,16 +127,16 @@ public class MainActivity extends AppCompatActivity {
     private void setToolbarSubtitle(){
         switch (Utility.getSortPreference(getApplication())){
             case MoviesService.SORT_BY_POPULAR:
-                mToolbar.setSubtitle(getResources().getString(R.string.sort_popularity));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_popularity));
                 break;
             case MoviesService.SORT_BY_TOP_RATED:
-                mToolbar.setSubtitle(getResources().getString(R.string.sort_rating));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_rating));
                 break;
             case MoviesService.SORT_BY_NOW_PLAYING:
-                mToolbar.setSubtitle(getResources().getString(R.string.sort_now_playing));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_now_playing));
                 break;
             case MoviesService.SORT_BY_UPCOMING:
-                mToolbar.setSubtitle(getResources().getString(R.string.sort_upcoming));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_upcoming));
                 break;
         }
     }
@@ -190,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchMovies(final int page){
         //Showing progress bar
-        mProgressBar.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
 
         @MoviesService.SORT_BY
         String sortBy = Utility.getSortPreference(this);
@@ -219,13 +217,13 @@ public class MainActivity extends AppCompatActivity {
                         mMovieAdapter.addDataSet(movieList);
                 }
                 //Hiding progress bar
-                mProgressBar.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
                 //Hiding progress bar
-                mProgressBar.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(getApplicationContext(), "Failed to Fetch Movies", Toast.LENGTH_LONG).show();
             }
         });

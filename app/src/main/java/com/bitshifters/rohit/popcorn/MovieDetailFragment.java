@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +12,11 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.bitshifters.rohit.popcorn.api.Movie;
-import com.bitshifters.rohit.popcorn.api.MoviesService;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Created by rohit on 29/3/16.
@@ -27,9 +28,12 @@ public class MovieDetailFragment extends Fragment {
 
     private Movie mMovie;
 
-    private TextView mTitle,mReleaseDate,mOverview,mVoteAverageText;
-    private RatingBar mVoteAverage;
-    private ImageView mPosterPortrait;
+    @Bind(R.id.tvTitle) TextView title;
+    @Bind(R.id.tvReleaseDate) TextView releaseDate;
+    @Bind(R.id.tvOverview) TextView overview;
+    @Bind(R.id.tvVote) TextView voteAverageText;
+    @Bind(R.id.rbVote) RatingBar voteAverage;
+    @Bind(R.id.ivPosterPortrait) ImageView posterPortrait;
 
     public MovieDetailFragment() {
     }
@@ -39,6 +43,7 @@ public class MovieDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments().containsKey(ARG_MOVIE)) {
+
             mMovie = (Movie) getArguments().getSerializable(ARG_MOVIE);
 
             Activity activity = this.getActivity();
@@ -53,26 +58,21 @@ public class MovieDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.movie_detail, container, false);
 
-        //Initializing Widgets
-        mTitle = (TextView) rootView.findViewById(R.id.tvTitle);
-        mReleaseDate = (TextView) rootView.findViewById(R.id.tvReleaseDate);
-        mOverview = (TextView) rootView.findViewById(R.id.tvOverview);
-        mVoteAverageText = (TextView) rootView.findViewById(R.id.tvVote);
-        mVoteAverage = (RatingBar) rootView.findViewById(R.id.rbVote);
-        mPosterPortrait = (ImageView) rootView.findViewById(R.id.ivPosterPortrait);
+        //Binding Views
+        ButterKnife.bind(this, rootView);
 
+        //Setting values
         if (mMovie != null) {
-            //Setting values
-            mTitle.setText(mMovie.getTitle());
-            mReleaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
-            mOverview.setText(mMovie.getOverview());
-            mVoteAverage.setRating(mMovie.getVoteAverage() / 2);
-            mVoteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
+            title.setText(mMovie.getTitle());
+            releaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
+            overview.setText(mMovie.getOverview());
+            voteAverage.setRating(mMovie.getVoteAverage() / 2);
+            voteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
 
             Picasso.with(rootView.getContext())
                     .load(Utility.getPortraitPosterUrl(getActivity(),mMovie.getPosterPath()))
                     .error(R.drawable.portrait_poster_not_found)
-                    .into(mPosterPortrait);
+                    .into(posterPortrait);
 
         }
         return rootView;

@@ -19,6 +19,10 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 /**
  * Created by rohit on 29/3/16.
  */
@@ -65,9 +69,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                     .error(R.drawable.portrait_poster_not_found)
                     .into(holder.mPosterPortrait);
 
-            //Setting OnClickListener
-            holder.mView.setOnClickListener(holder);
-
             //For Two Pane View for first time setup
             if(mMainActivity.ismTwoPane() && position == mMainActivity.getmPosition()){
                 holder.onClick(holder.mView);
@@ -79,21 +80,20 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             return mValues.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        public class ViewHolder extends RecyclerView.ViewHolder{
             public final View mView;
             public Movie mItem;
-            public ImageView mPosterPortrait;
             public int position;
+            @Bind(R.id.ivPosterPortrait) ImageView mPosterPortrait;
 
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
-                mPosterPortrait = (ImageView) view.findViewById(R.id.ivPosterPortrait);
+                ButterKnife.bind(this,view);
             }
 
-            @Override
+            @OnClick(R.id.ivPosterPortrait)
             public void onClick(View v) {
-
                 //Loading fragment in the MainActivity in Two Pane Mode and storing position
                 if (mMainActivity.ismTwoPane()) {
                     Bundle arguments = new Bundle();
