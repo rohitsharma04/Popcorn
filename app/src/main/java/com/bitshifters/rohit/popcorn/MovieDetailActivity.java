@@ -37,14 +37,14 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         //Restoring state of the Activity
         if (savedInstanceState != null && savedInstanceState.containsKey(MovieDetailFragment.ARG_MOVIE)) {
-            mMovie = (Movie) savedInstanceState.getSerializable(MovieDetailFragment.ARG_MOVIE);
+            mMovie = (Movie) savedInstanceState.getParcelable(MovieDetailFragment.ARG_MOVIE);
 
         }else{
             //Creating Fragment and adding it to the activity
-            mMovie = (Movie) getIntent().getSerializableExtra(MovieDetailFragment.ARG_MOVIE);
+            mMovie = (Movie) getIntent().getParcelableExtra(MovieDetailFragment.ARG_MOVIE);
 
             Bundle arguments = new Bundle();
-            arguments.putSerializable(MovieDetailFragment.ARG_MOVIE, mMovie);
+            arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mMovie);
 
             MovieDetailFragment fragment = new MovieDetailFragment();
             fragment.setArguments(arguments);
@@ -81,7 +81,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(MovieDetailFragment.ARG_MOVIE,mMovie);
+        outState.putParcelable(MovieDetailFragment.ARG_MOVIE,mMovie);
     }
 
 

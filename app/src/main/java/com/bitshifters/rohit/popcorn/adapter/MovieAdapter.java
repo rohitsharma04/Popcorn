@@ -97,7 +97,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                 //Loading fragment in the MainActivity in Two Pane Mode and storing position
                 if (mMainActivity.ismTwoPane()) {
                     Bundle arguments = new Bundle();
-                    arguments.putSerializable(MovieDetailFragment.ARG_MOVIE, mItem);
+                    arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mItem);
                     MovieDetailFragment fragment = new MovieDetailFragment();
                     fragment.setArguments(arguments);
                     mMainActivity.getSupportFragmentManager().beginTransaction()

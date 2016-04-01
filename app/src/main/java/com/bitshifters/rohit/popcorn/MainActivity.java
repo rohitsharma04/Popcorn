@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         //Restoring state on configuration change
         if(savedInstanceState != null && savedInstanceState.containsKey(ARG_MOVIE_SERVICE_RESPONSE)) {
             mMovieServiceResponse =
-                    (MovieServiceResponse) savedInstanceState.getSerializable(ARG_MOVIE_SERVICE_RESPONSE);
+                    (MovieServiceResponse) savedInstanceState.getParcelable(ARG_MOVIE_SERVICE_RESPONSE);
             mMovieAdapter.changeDataSet(mMovieServiceResponse.getMovies());
 
             if(savedInstanceState.containsKey(ARG_MOVIE_SERVICE_RESPONSE)) {
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(ARG_MOVIE_SERVICE_RESPONSE, mMovieServiceResponse);
+        outState.putParcelable(ARG_MOVIE_SERVICE_RESPONSE, mMovieServiceResponse);
         outState.putInt(LIST_POSITION, mPosition);
     }
 

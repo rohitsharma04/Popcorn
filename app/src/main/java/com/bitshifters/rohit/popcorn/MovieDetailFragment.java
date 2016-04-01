@@ -44,7 +44,7 @@ public class MovieDetailFragment extends Fragment {
 
         if (getArguments().containsKey(ARG_MOVIE)) {
 
-            mMovie = (Movie) getArguments().getSerializable(ARG_MOVIE);
+            mMovie = (Movie) getArguments().getParcelable(ARG_MOVIE);
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
