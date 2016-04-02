@@ -30,6 +30,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
         private final List<Movie> mValues;
         private MainActivity mMainActivity;
+        public MovieDetailFragment fragment;
 
         public MovieAdapter(final MainActivity activity, List<Movie> items) {
             mValues = items;
@@ -98,7 +99,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                 if (mMainActivity.ismTwoPane()) {
                     Bundle arguments = new Bundle();
                     arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mItem);
-                    MovieDetailFragment fragment = new MovieDetailFragment();
+                    fragment = new MovieDetailFragment();
                     fragment.setArguments(arguments);
                     mMainActivity.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.movie_detail_container, fragment)

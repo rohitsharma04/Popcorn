@@ -5,12 +5,15 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.bitshifters.rohit.popcorn.R;
+import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
+import com.bitshifters.rohit.popcorn.api.Video;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -76,6 +79,16 @@ public class Utility {
             return reviewText.substring(0,STANDARD_TEXT_EXCERPT_LENGTH)+"...Read More";
         }
         return reviewText;
+    }
+
+    public static String getShareActionText(Movie movie, List<Video> videos, Context context){
+        String shareText = movie.getTitle()+" - "+ movie.getOverview();
+        if (videos != null && !videos.isEmpty()){
+            Video video = videos.get(0);
+            shareText += " Watch this "+ video.getType()+" "+getYoutubeVideoUrl(video.getKey());
+        }
+        shareText += " Shared via - "+ context.getResources().getString(R.string.app_name);
+        return shareText;
     }
 
 }

@@ -1,9 +1,15 @@
 package com.bitshifters.rohit.popcorn;
 
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -24,6 +30,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     @Bind(R.id.detail_toolbar) Toolbar toolbar;
 
     private Movie mMovie;
+    private MovieDetailFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +53,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             Bundle arguments = new Bundle();
             arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mMovie);
 
-            MovieDetailFragment fragment = new MovieDetailFragment();
+            fragment = new MovieDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.movie_detail_container, fragment)
@@ -83,6 +90,5 @@ public class MovieDetailActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putParcelable(MovieDetailFragment.ARG_MOVIE,mMovie);
     }
-
 
 }

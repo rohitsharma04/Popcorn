@@ -2,14 +2,20 @@ package com.bitshifters.rohit.popcorn;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -55,6 +61,7 @@ public class MovieDetailFragment extends Fragment {
     private ArrayList<Review> reviews;
     private VideoAdapter videoAdapter;
     private ReviewAdapter reviewAdapter;
+    private ShareActionProvider shareActionProvider;
 
     @Bind(R.id.review_cardview) CardView reviewView;
     @Bind(R.id.videos_cardview) CardView videoView;
@@ -70,6 +77,7 @@ public class MovieDetailFragment extends Fragment {
     @Bind(R.id.ivPosterPortrait) ImageView posterPortrait;
 
     public MovieDetailFragment() {
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -81,7 +89,26 @@ public class MovieDetailFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.detail_fragment_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+        shareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+        updateShareIntent();
 
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void updateShareIntent(){
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT,mMovie.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_TEXT,
+                Utility.getShareActionText(mMovie, videos, mContext));
+        shareActionProvider.setShareIntent(shareIntent);
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -181,6 +208,7 @@ public class MovieDetailFragment extends Fragment {
                     videoView.setVisibility(View.VISIBLE);
                     videoAdapter.addDataSet(videos);
                 }
+                updateShareIntent();
             }
 
             @Override
