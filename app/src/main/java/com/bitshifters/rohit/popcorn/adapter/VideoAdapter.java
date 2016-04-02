@@ -2,6 +2,7 @@ package com.bitshifters.rohit.popcorn.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -91,7 +92,13 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.ViewHolder> 
         @OnClick(R.id.ivVideoThumbnail)
         public void onClick(View v) {
             Log.v("Adapter","Video Clicked");
-            Toast.makeText(mContext, "Open Video", Toast.LENGTH_LONG).show();
+            Uri videoUri = Uri.parse(Utility.getYoutubeVideoUrl(mItem.getKey()));
+            Intent videoIntent = new Intent(Intent.ACTION_VIEW, videoUri);
+            if(videoIntent.resolveActivity(mContext.getPackageManager()) != null){
+                mContext.startActivity(videoIntent);
+            }else{
+                Toast.makeText(mContext,"No Application Found to Launch Video",Toast.LENGTH_LONG).show();
+            }
         }
     }
 }

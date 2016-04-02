@@ -21,6 +21,7 @@ public class Utility {
     private final static String MY_PREFS = "MyPrefs";
     private final static String SORT_PREFERENCE = "sortPreference";
     private final static String YOUTUBE_VIDEO_THUMBNAIL_BASE_URL = "http://img.youtube.com/vi/";
+    private final static String YOUTUBE_VIDEO_BASE_URL = "http://www.youtube.com/watch?v=";
     private final static int STANDARD_TEXT_EXCERPT_LENGTH = 150;
 
     public static String getFormattedDate(String dateString ) {
@@ -66,10 +67,15 @@ public class Utility {
         return YOUTUBE_VIDEO_THUMBNAIL_BASE_URL + videoUrl + "/1.jpg";
     }
 
+    public static String getYoutubeVideoUrl(String videoID){
+        return YOUTUBE_VIDEO_BASE_URL + videoID;
+    }
+
     public static String getReviewExcerpt(String reviewText){
         if (reviewText.length() > STANDARD_TEXT_EXCERPT_LENGTH){
             return reviewText.substring(0,STANDARD_TEXT_EXCERPT_LENGTH)+"...Read More";
         }
         return reviewText;
     }
+
 }
