@@ -16,4 +16,6 @@
 
     <string name="portrait_poster_size_code">w185/</string>
     <string name="landscape_poster_size_code">w342/</string>
+    <string name="video_name">Video Name</string>
+    <string name="video_type">Video Type</string>
 </resources>

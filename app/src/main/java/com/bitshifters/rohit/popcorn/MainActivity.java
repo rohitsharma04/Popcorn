@@ -17,8 +17,8 @@ import android.widget.Toast;
 import com.bitshifters.rohit.popcorn.adapter.InfiniteRecyclerOnScrollListener;
 import com.bitshifters.rohit.popcorn.adapter.MovieAdapter;
 import com.bitshifters.rohit.popcorn.api.Movie;
+import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 import com.bitshifters.rohit.popcorn.api.MovieServiceResponse;
-import com.bitshifters.rohit.popcorn.api.MoviesService;
 import com.bitshifters.rohit.popcorn.util.Utility;
 
 import java.util.ArrayList;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public void changeMovieList(@MoviesService.SORT_BY String sortBy){
+    public void changeMovieList(@MovieDbOrgApiService.SORT_BY String sortBy){
         //Setting old list to null because of preference change
         mMovieServiceResponse.setMovies(new ArrayList<Movie>());
         //Saving the new preference
@@ -126,16 +126,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void setToolbarSubtitle(){
         switch (Utility.getSortPreference(getApplication())){
-            case MoviesService.SORT_BY_POPULAR:
+            case MovieDbOrgApiService.SORT_BY_POPULAR:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_popularity));
                 break;
-            case MoviesService.SORT_BY_TOP_RATED:
+            case MovieDbOrgApiService.SORT_BY_TOP_RATED:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_rating));
                 break;
-            case MoviesService.SORT_BY_NOW_PLAYING:
+            case MovieDbOrgApiService.SORT_BY_NOW_PLAYING:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_now_playing));
                 break;
-            case MoviesService.SORT_BY_UPCOMING:
+            case MovieDbOrgApiService.SORT_BY_UPCOMING:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_upcoming));
                 break;
         }
@@ -144,16 +144,16 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_sort_popularity:
-                changeMovieList(MoviesService.SORT_BY_POPULAR);
+                changeMovieList(MovieDbOrgApiService.SORT_BY_POPULAR);
                 break;
             case R.id.action_sort_rating:
-                changeMovieList(MoviesService.SORT_BY_TOP_RATED);
+                changeMovieList(MovieDbOrgApiService.SORT_BY_TOP_RATED);
                 break;
             case R.id.action_sort_now_playing:
-                changeMovieList(MoviesService.SORT_BY_NOW_PLAYING);
+                changeMovieList(MovieDbOrgApiService.SORT_BY_NOW_PLAYING);
                 break;
             case R.id.action_sort_upcoming:
-                changeMovieList(MoviesService.SORT_BY_UPCOMING);
+                changeMovieList(MovieDbOrgApiService.SORT_BY_UPCOMING);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -190,16 +190,16 @@ public class MainActivity extends AppCompatActivity {
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
-        @MoviesService.SORT_BY
+        @MovieDbOrgApiService.SORT_BY
         String sortBy = Utility.getSortPreference(this);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(MoviesService.API_BASE_URL)
+                .baseUrl(MovieDbOrgApiService.API_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        MoviesService moviesService = retrofit.create(MoviesService.class);
-        Call<MovieServiceResponse> call = moviesService.movieList(sortBy, MoviesService.API_KEY, page);
+        MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
+        Call<MovieServiceResponse> call = movieDbOrgApiService.movieList(sortBy, MovieDbOrgApiService.API_KEY, page);
         call.enqueue(new Callback<MovieServiceResponse>() {
 
             @Override

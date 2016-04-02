@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.bitshifters.rohit.popcorn.R;
-import com.bitshifters.rohit.popcorn.api.MoviesService;
+import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -20,6 +20,7 @@ public class Utility {
     private final static String TAG = Utility.class.getSimpleName();
     private final static String MY_PREFS = "MyPrefs";
     private final static String SORT_PREFERENCE = "sortPreference";
+    private final static String YOUTUBE_VIDEO_THUMBNAIL_BASE_URL = "http://img.youtube.com/vi/";
 
     public static String getFormattedDate(String dateString ) {
         String inputPattern = "yyyy-MM-dd";
@@ -34,13 +35,13 @@ public class Utility {
         return dateString;
     }
 
-    public static @MoviesService.SORT_BY String getSortPreference(Context context){
+    public static @MovieDbOrgApiService.SORT_BY String getSortPreference(Context context){
         SharedPreferences preferences = context.getSharedPreferences(MY_PREFS, Context.MODE_PRIVATE);
-        @MoviesService.SORT_BY String sortPreference =  preferences.getString(SORT_PREFERENCE, MoviesService.SORT_BY_POPULAR);
+        @MovieDbOrgApiService.SORT_BY String sortPreference =  preferences.getString(SORT_PREFERENCE, MovieDbOrgApiService.SORT_BY_POPULAR);
         return sortPreference;
     }
 
-    public static void saveSortPreference(Context context, @MoviesService.SORT_BY String sortBy){
+    public static void saveSortPreference(Context context, @MovieDbOrgApiService.SORT_BY String sortBy){
         SharedPreferences preferences = context.getSharedPreferences(MY_PREFS,Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(SORT_PREFERENCE,sortBy);
@@ -48,15 +49,19 @@ public class Utility {
     }
 
     public static String getPortraitPosterUrl(Context context, String relativeUrl){
-        return MoviesService.IMAGE_BASE_URL
+        return MovieDbOrgApiService.IMAGE_BASE_URL
                 + context.getResources().getString(R.string.portrait_poster_size_code)
                 + relativeUrl;
     }
 
     public static String getLandscapePosterUrl(Context context, String relativeUrl){
-        return MoviesService.IMAGE_BASE_URL
+        return MovieDbOrgApiService.IMAGE_BASE_URL
                 + context.getResources().getString(R.string.landscape_poster_size_code)
                 + relativeUrl;
     }
 
+    //http://img.youtube.com/vi/Ay-ZN4uRZ-4/mqdefault.jpg
+    public static String getYoutubeThumbnailUrl(String videoUrl){
+        return YOUTUBE_VIDEO_THUMBNAIL_BASE_URL + videoUrl + "/1.jpg";
+    }
 }
