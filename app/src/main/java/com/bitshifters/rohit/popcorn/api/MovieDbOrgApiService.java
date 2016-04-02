@@ -41,4 +41,11 @@ public interface MovieDbOrgApiService {
             @Query("api_key") String apiKey
     );
 
+    //Provides User Reviews
+    @GET("movie/{movie_id}/reviews")
+    Call<ReviewServiceResponse> reviewList(
+            @Path("movie_id") int movieId,
+            @Query("api_key") String apiKey
+    );
+
 }

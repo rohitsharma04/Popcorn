@@ -84,13 +84,14 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.ViewHolder> 
             videoType.setText(mItem.getType());
             Picasso.with(mContext)
                     .load(Utility.getYoutubeThumbnailUrl(mItem.getKey()))
+                    .error(R.drawable.youtube_play)
                     .into(mVideoThumbnail);
         }
 
         @OnClick(R.id.ivVideoThumbnail)
         public void onClick(View v) {
             Log.v("Adapter","Video Clicked");
-            Toast.makeText(mContext, "Open Video", Toast.LENGTH_LONG);
+            Toast.makeText(mContext, "Open Video", Toast.LENGTH_LONG).show();
         }
     }
 }
