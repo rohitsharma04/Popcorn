@@ -5,6 +5,9 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -44,12 +47,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by rohit on 29/3/16.
  */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String ARG_MOVIE_SERVICE_RESPONSE = "arg_movie_service_response";
     private static final int FIRST_PAGE = 1;
     private static final String LIST_POSITION = "listPosition";
+    private static final int FAVORITE_MOVIES_LOADER = 0;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.pbLoadingSpinner) ProgressBar progressBar;
@@ -58,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mTwoPane;
     private int mPosition = 0;
-    private String mQuery;
+    private boolean isSearch = false;
 
     private MovieAdapter mMovieAdapter;
     private MovieServiceResponse mMovieServiceResponse;
@@ -91,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         }else{
             if (Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
-                fetchMovieFromDb();
+                getSupportLoaderManager().initLoader(FAVORITE_MOVIES_LOADER, null, this);
             }else {
                 //fetch Movie from the api
                 fetchMoviesBySortType(FIRST_PAGE);
@@ -125,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                isSearch = true;
                 searchView.closeSearch();
                 mMovieServiceResponse.setMovies(new ArrayList<Movie>());
                 mMovieAdapter.changeDataSet(new ArrayList<Movie>());
@@ -166,6 +171,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void changeMovieList(@MovieDbOrgApiService.SORT_BY String sortBy){
+        getSupportLoaderManager().destroyLoader(FAVORITE_MOVIES_LOADER);
+        isSearch = false;
         //Setting old list to null because of preference change
         mMovieServiceResponse.setMovies(new ArrayList<Movie>());
         mMovieAdapter.changeDataSet(new ArrayList<Movie>());
@@ -176,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(sortBy.equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
             recyclerView.removeOnScrollListener(mInfiniteRecyclerOnScrollListener);
-            fetchMovieFromDb();
+            getSupportLoaderManager().initLoader(FAVORITE_MOVIES_LOADER, null, this);
         }else {
             //Fetching Movies for new Preference
             recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
@@ -307,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchMovies(String query){
-        Log.v(TAG,"Fetch Movies");
+        Log.v(TAG,"Search Movies");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
@@ -350,13 +357,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void fetchMovieFromDb() {
+    private void fetchMovieFromDb(Cursor cursor) {
         Log.v(TAG,"Fetch Movies From DB");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
-        Cursor cursor = getContentResolver().query(MovieProvider.Movies.CONTENT_URI, MovieProvider.COLUMNS,
-                null, null, null, null);
         List<Movie> movies = new ArrayList<>();
         if(cursor != null) {
             while (cursor.moveToNext()) {
@@ -401,5 +406,31 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.v(TAG,"onCreateLoader");
+        return new CursorLoader(this,MovieProvider.Movies.CONTENT_URI, MovieProvider.COLUMNS,
+                null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.v(TAG,"onLoadFinished");
+        fetchMovieFromDb(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.v(TAG,"onLoaderReset");
+    }
+
+    @Override
+    protected void onRestart() {
+        if (!isSearch && Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
+            getSupportLoaderManager().restartLoader(FAVORITE_MOVIES_LOADER, null, this);
+        }
+        super.onRestart();
     }
 }
