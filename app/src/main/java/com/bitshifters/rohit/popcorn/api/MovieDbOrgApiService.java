@@ -36,6 +36,13 @@ public interface MovieDbOrgApiService {
             @Query("page") int page
     );
 
+    //Provides List of Movies on some query
+    @GET("search/movie")
+    Call<MovieServiceResponse> searchResult(
+      @Query("api_key") String apiKey,
+      @Query("query") String query
+    );
+
     //Provides Movie Trailer and other video clips related to movie
     @GET("movie/{movie_id}/videos")
     Call<VideoServiceResponse> videoList(

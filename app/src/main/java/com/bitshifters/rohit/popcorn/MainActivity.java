@@ -1,12 +1,16 @@
 package com.bitshifters.rohit.popcorn;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,9 +25,9 @@ import com.bitshifters.rohit.popcorn.adapter.MovieAdapter;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 import com.bitshifters.rohit.popcorn.api.MovieServiceResponse;
-import com.bitshifters.rohit.popcorn.data.MovieColumns;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
 import com.bitshifters.rohit.popcorn.util.Utility;
+import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,9 +54,11 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.pbLoadingSpinner) ProgressBar progressBar;
     @Bind(R.id.movie_list) RecyclerView recyclerView;
+    @Bind(R.id.search_view) MaterialSearchView searchView;
 
     private boolean mTwoPane;
     private int mPosition = 0;
+    private String mQuery;
 
     private MovieAdapter mMovieAdapter;
     private MovieServiceResponse mMovieServiceResponse;
@@ -88,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 fetchMovieFromDb();
             }else {
                 //fetch Movie from the api
-                fetchMovies(FIRST_PAGE);
+                fetchMoviesBySortType(FIRST_PAGE);
             }
         }
     }
@@ -107,14 +113,55 @@ public class MainActivity extends AppCompatActivity {
 
         //Setting up recycler view
         setupRecyclerView(recyclerView);
+
+        //Setting Search View
+        setupSearchView();
+
     }
 
+    private void setupSearchView() {
+        searchView.setEllipsize(true);
+        searchView.setVoiceSearch(false);
+        searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchView.closeSearch();
+                mMovieServiceResponse.setMovies(new ArrayList<Movie>());
+                mMovieAdapter.changeDataSet(new ArrayList<Movie>());
+                //Resetting the InfiniteScrollListener
+                mInfiniteRecyclerOnScrollListener.resetScrollSettings();
+                recyclerView.removeOnScrollListener(mInfiniteRecyclerOnScrollListener);
+                searchMovies(query);
+                toolbar.setSubtitle("Search Results for "+ query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //Do some magic
+                return false;
+            }
+        });
+        searchView.setOnSearchViewListener(new MaterialSearchView.SearchViewListener() {
+            @Override
+            public void onSearchViewShown() {
+                searchView.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onSearchViewClosed() {
+                searchView.setVisibility(View.GONE);
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        searchView.setMenuItem(item);
         return true;
     }
 
@@ -133,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         }else {
             //Fetching Movies for new Preference
             recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
-            fetchMovies(FIRST_PAGE);
+            fetchMoviesBySortType(FIRST_PAGE);
         }
         setToolbarSubtitle();
         //resetting position
@@ -190,22 +237,6 @@ public class MainActivity extends AppCompatActivity {
         outState.putInt(LIST_POSITION, mPosition);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.v(TAG, "Resume");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.v(TAG,"Restart");
-        if(Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
-            fetchMovieFromDb();
-        }
-    }
-
-
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
 
         GridLayoutManager layoutManager = new GridLayoutManager(this,
@@ -215,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         mInfiniteRecyclerOnScrollListener = new InfiniteRecyclerOnScrollListener(layoutManager) {
             @Override
             public void onLoadMore(int current_page) {
-                fetchMovies(current_page);
+                fetchMoviesBySortType(current_page);
             }
         };
 
@@ -229,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(mMovieAdapter);
     }
 
-    private void fetchMovies(final int page){
+    private void fetchMoviesBySortType(final int page){
         Log.v(TAG,"Fetch Movies");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
@@ -243,7 +274,8 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
-        Call<MovieServiceResponse> call = movieDbOrgApiService.movieList(sortBy, MovieDbOrgApiService.API_KEY, page);
+
+        Call<MovieServiceResponse> call= movieDbOrgApiService.movieList(sortBy, MovieDbOrgApiService.API_KEY, page);
         call.enqueue(new Callback<MovieServiceResponse>() {
 
             @Override
@@ -271,6 +303,51 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Failed to Fetch Movies");
             }
         });
+
+    }
+
+    private void searchMovies(String query){
+        Log.v(TAG,"Fetch Movies");
+        //Showing progress bar
+        progressBar.setVisibility(View.VISIBLE);
+
+        @MovieDbOrgApiService.SORT_BY
+        String sortBy = Utility.getSortPreference(this);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MovieDbOrgApiService.API_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
+
+        Call<MovieServiceResponse> call= movieDbOrgApiService.searchResult(MovieDbOrgApiService.API_KEY,query);
+        call.enqueue(new Callback<MovieServiceResponse>() {
+
+            @Override
+            public void onResponse(Call<MovieServiceResponse> call, Response<MovieServiceResponse> response) {
+                List<Movie> movieList = new ArrayList<Movie>();
+                if (response.body() != null) {
+                    movieList = response.body().getMovies();
+                }
+                //Saving the movies data for restoring instance
+                mMovieServiceResponse.movies.clear();
+                mMovieServiceResponse.movies.addAll(movieList);
+                if (!movieList.isEmpty()) {
+                    mMovieAdapter.changeDataSet(movieList);
+                }
+                //Hiding progress bar
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
+                //Hiding progress bar
+                progressBar.setVisibility(View.GONE);
+                Log.e(TAG, "Failed to Search Movies");
+            }
+        });
+
     }
 
     private void fetchMovieFromDb() {
@@ -317,4 +394,12 @@ public class MainActivity extends AppCompatActivity {
         return mTwoPane;
     }
 
+    @Override
+    public void onBackPressed() {
+        if (searchView.isSearchOpen()) {
+            searchView.closeSearch();
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

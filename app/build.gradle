@@ -40,4 +40,6 @@ dependencies {
 
     apt 'net.simonvt.schematic:schematic-compiler:0.6.4'
     compile 'net.simonvt.schematic:schematic:0.6.4'
+
+    compile 'com.miguelcatalan:materialsearchview:1.4.0'
 }
