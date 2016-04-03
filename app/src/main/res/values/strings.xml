@@ -6,11 +6,12 @@
     <string name="movie_overview">Fearing the actions of a god-like Super Hero left unchecked, Gotham City’s own formidable, forceful vigilante takes on Metropolis’s most revered, modern-day savior, while the world wrestles with what sort of hero it really needs. And with Batman and Superman at war with one another, a new threat quickly arises, putting mankind in greater danger than it’s ever known before.</string>
     <string name="release_date">22 March 2016</string>
     <string name="add_to_favorites">Add to Favorites</string>
+    <string name="remove_from_favorites">Remove from Favorites</string>
     <string name="rating" formatted="false">%.2f/10</string>
 
     <string name="sort_by">Sort By</string>
-    <string name="sort_popularity">Popular</string>
-    <string name="sort_rating">Top Rated</string>
+    <string name="sort_popular">Popular</string>
+    <string name="sort_top_rated">Top Rated</string>
     <string name="sort_now_playing">Now Playing</string>
     <string name="sort_upcoming">Upcoming</string>
 
@@ -20,4 +21,5 @@
     <string name="video_type">Video Type</string>
     <string name="author_name">Author Name</string>
     <string name="review_text">The Hunger Games creator and mastermind Suzanne Collins has brought to life the explosive and resilient heroine Katniss Everdeen (not to mention the resourceful actress stepping into her action-oriented shoes and consciousness in the form of Oscar-winning actress Jennifer Lawrence). Now with the conclusive The Hunger Games: Mockingjay--Part 2 ardent and casual fans of this imaginative and charged film franchise will get a chance to soak in the cinematic experience that has carried them through this durable trilogy. However, the question remains: does Mockingjay--Part 2 fulfill the adventurous swagger of its previous predecessors as it demonstrates its furious farewell in moodiness and mischievousness? Well, the answer is a resounding YES but some will still address the concept of the film\'s emotional and psychological leanings as merely serviceable to a string of feisty films that invited such passion, pronouncement and promise in its commentary on class struggle and societal survival means as a whole.</string>
+    <string name="sort_favorite">Favorites</string>
 </resources>

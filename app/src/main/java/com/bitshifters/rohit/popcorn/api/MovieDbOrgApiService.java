@@ -21,8 +21,10 @@ public interface MovieDbOrgApiService {
     public static final String SORT_BY_TOP_RATED = "top_rated";
     public static final String SORT_BY_NOW_PLAYING = "now_playing";
     public static final String SORT_BY_UPCOMING = "upcoming";
+    //Only for offline but a lot of place is using this StringDef like SharedPreference
+    public static final String SORT_BY_FAVORITE = "favorite";
 
-    @StringDef({SORT_BY_POPULAR, SORT_BY_TOP_RATED, SORT_BY_NOW_PLAYING, SORT_BY_UPCOMING})
+    @StringDef({SORT_BY_POPULAR, SORT_BY_TOP_RATED, SORT_BY_NOW_PLAYING, SORT_BY_UPCOMING, SORT_BY_FAVORITE})
     public @interface SORT_BY {
     }
 

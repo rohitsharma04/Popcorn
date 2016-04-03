@@ -29,6 +29,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
+        <provider
+            android:authorities="com.bitshifters.rohit.popcorn.data.MovieProvider"
+            android:name="com.bitshifters.rohit.popcorn.data.generated.MovieProvider"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

@@ -10,17 +10,20 @@
         android:title="@string/sort_by" >
         <menu>
             <item
-                android:id="@+id/action_sort_popularity"
-                android:title="@string/sort_popularity"/>
+                android:id="@+id/action_sort_popular"
+                android:title="@string/sort_popular"/>
             <item
-                android:id="@+id/action_sort_rating"
-                android:title="@string/sort_rating"/>
+                android:id="@+id/action_sort_top_rated"
+                android:title="@string/sort_top_rated"/>
             <item
                 android:id="@+id/action_sort_now_playing"
                 android:title="@string/sort_now_playing"/>
             <item
                 android:id="@+id/action_sort_upcoming"
                 android:title="@string/sort_upcoming"/>
+            <item
+                android:id="@+id/action_sort_favorite"
+                android:title="@string/sort_favorite"/>
         </menu>
 
     </item>

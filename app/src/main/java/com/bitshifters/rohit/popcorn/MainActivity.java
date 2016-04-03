@@ -1,12 +1,11 @@
 package com.bitshifters.rohit.popcorn;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -22,6 +21,8 @@ import com.bitshifters.rohit.popcorn.adapter.MovieAdapter;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 import com.bitshifters.rohit.popcorn.api.MovieServiceResponse;
+import com.bitshifters.rohit.popcorn.data.MovieColumns;
+import com.bitshifters.rohit.popcorn.data.MovieProvider;
 import com.bitshifters.rohit.popcorn.util.Utility;
 
 import java.util.ArrayList;
@@ -83,8 +84,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }else{
-            //fetch Movie from the api
-            fetchMovies(FIRST_PAGE);
+            if (Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
+                fetchMovieFromDb();
+            }else {
+                //fetch Movie from the api
+                fetchMovies(FIRST_PAGE);
+            }
         }
     }
 
@@ -116,24 +121,33 @@ public class MainActivity extends AppCompatActivity {
     public void changeMovieList(@MovieDbOrgApiService.SORT_BY String sortBy){
         //Setting old list to null because of preference change
         mMovieServiceResponse.setMovies(new ArrayList<Movie>());
+        mMovieAdapter.changeDataSet(new ArrayList<Movie>());
         //Saving the new preference
-        Utility.saveSortPreference(this,sortBy);
+        Utility.saveSortPreference(this, sortBy);
         //Resetting the InfiniteScrollListener
         mInfiniteRecyclerOnScrollListener.resetScrollSettings();
-        //Fetching Movies for new Preference
-        fetchMovies(FIRST_PAGE);
+
+        if(sortBy.equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
+            recyclerView.removeOnScrollListener(mInfiniteRecyclerOnScrollListener);
+            fetchMovieFromDb();
+        }else {
+            //Fetching Movies for new Preference
+            recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
+            fetchMovies(FIRST_PAGE);
+        }
         setToolbarSubtitle();
         //resetting position
         setmPosition(0);
     }
 
+
     private void setToolbarSubtitle(){
         switch (Utility.getSortPreference(getApplication())){
             case MovieDbOrgApiService.SORT_BY_POPULAR:
-                toolbar.setSubtitle(getResources().getString(R.string.sort_popularity));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_popular));
                 break;
             case MovieDbOrgApiService.SORT_BY_TOP_RATED:
-                toolbar.setSubtitle(getResources().getString(R.string.sort_rating));
+                toolbar.setSubtitle(getResources().getString(R.string.sort_top_rated));
                 break;
             case MovieDbOrgApiService.SORT_BY_NOW_PLAYING:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_now_playing));
@@ -141,15 +155,18 @@ public class MainActivity extends AppCompatActivity {
             case MovieDbOrgApiService.SORT_BY_UPCOMING:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_upcoming));
                 break;
+            case MovieDbOrgApiService.SORT_BY_FAVORITE:
+                toolbar.setSubtitle(getResources().getString(R.string.sort_favorite));
+                break;
         }
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_sort_popularity:
+            case R.id.action_sort_popular:
                 changeMovieList(MovieDbOrgApiService.SORT_BY_POPULAR);
                 break;
-            case R.id.action_sort_rating:
+            case R.id.action_sort_top_rated:
                 changeMovieList(MovieDbOrgApiService.SORT_BY_TOP_RATED);
                 break;
             case R.id.action_sort_now_playing:
@@ -157,6 +174,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_sort_upcoming:
                 changeMovieList(MovieDbOrgApiService.SORT_BY_UPCOMING);
+                break;
+            case R.id.action_sort_favorite:
+//                Toast.makeText(this,"Favorite Selected",Toast.LENGTH_SHORT).show();
+                changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -168,6 +189,22 @@ public class MainActivity extends AppCompatActivity {
         outState.putParcelable(ARG_MOVIE_SERVICE_RESPONSE, mMovieServiceResponse);
         outState.putInt(LIST_POSITION, mPosition);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.v(TAG, "Resume");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.v(TAG,"Restart");
+        if(Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
+            fetchMovieFromDb();
+        }
+    }
+
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
 
@@ -183,13 +220,17 @@ public class MainActivity extends AppCompatActivity {
         };
 
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
+
+        if (!Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)) {
+            recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
+        }
 
         mMovieAdapter = new MovieAdapter(this, new ArrayList<Movie>());
         recyclerView.setAdapter(mMovieAdapter);
     }
 
     private void fetchMovies(final int page){
+        Log.v(TAG,"Fetch Movies");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
@@ -213,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 //Saving the movies data for restoring instance
                 mMovieServiceResponse.movies.addAll(movieList);
-                if (movieList != null) {
+                if (!movieList.isEmpty()) {
                     if (page == FIRST_PAGE)
                         mMovieAdapter.changeDataSet(movieList);
                     else
@@ -227,9 +268,40 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
                 //Hiding progress bar
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(getApplicationContext(), "Failed to Fetch Movies", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Failed to Fetch Movies");
             }
         });
+    }
+
+    private void fetchMovieFromDb() {
+        Log.v(TAG,"Fetch Movies From DB");
+        //Showing progress bar
+        progressBar.setVisibility(View.VISIBLE);
+
+        Cursor cursor = getContentResolver().query(MovieProvider.Movies.CONTENT_URI, MovieProvider.COLUMNS,
+                null, null, null, null);
+        List<Movie> movies = new ArrayList<>();
+        if(cursor != null) {
+            while (cursor.moveToNext()) {
+                String posterPath = cursor.getString(MovieProvider.POSTER_PATH_ID);
+                String overview = cursor.getString(MovieProvider.OVERVIEW_ID);
+                String releaseDate = cursor.getString(MovieProvider.RELEASE_DATE_ID);
+                Integer id = cursor.getInt(MovieProvider.ID_ID);
+                String title = cursor.getString(MovieProvider.TITLE_ID);
+                String backdropPath = cursor.getString(MovieProvider.BACKDROP_ID);
+                Float popularity = cursor.getFloat(MovieProvider.POPULARITY_ID);
+                Integer voteCount = cursor.getInt(MovieProvider.VOTE_COUNT_ID);
+                Float voteAverage = cursor.getFloat(MovieProvider.VOTE_AVERAGE_ID);
+                movies.add(new Movie(posterPath, overview, releaseDate, id,
+                        title, backdropPath, popularity, voteCount, voteAverage));
+            }
+            cursor.close();
+        }
+        mMovieServiceResponse.setMovies(movies);
+        //Updating the adapter
+        mMovieAdapter.changeDataSet(movies);
+        //Hiding progress bar
+        progressBar.setVisibility(View.GONE);
     }
 
     //For Using when state is restored

@@ -71,6 +71,17 @@ public class Movie implements Parcelable {
     @Expose
     public Float voteAverage;
 
+    public Movie(String posterPath, String overview, String releaseDate, Integer id, String title, String backdropPath, Float popularity, Integer voteCount, Float voteAverage) {
+        this.posterPath = posterPath;
+        this.overview = overview;
+        this.releaseDate = releaseDate;
+        this.id = id;
+        this.title = title;
+        this.backdropPath = backdropPath;
+        this.popularity = popularity;
+        this.voteCount = voteCount;
+        this.voteAverage = voteAverage;
+    }
 
     @Override
     public int describeContents() {

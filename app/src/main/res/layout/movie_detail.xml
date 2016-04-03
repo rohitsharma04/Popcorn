@@ -77,11 +77,13 @@
                     android:layout_margin="5dp">
 
                     <ImageButton
+                        android:id="@+id/ibtnFavorite"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@android:drawable/star_big_off"/>
 
                     <TextView
+                        android:id="@+id/tvFavoriteText"
                         android:padding="7dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

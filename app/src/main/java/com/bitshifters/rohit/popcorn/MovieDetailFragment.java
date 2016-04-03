@@ -1,8 +1,13 @@
 package com.bitshifters.rohit.popcorn;
 
 import android.app.Activity;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,6 +23,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -31,14 +37,16 @@ import com.bitshifters.rohit.popcorn.api.Review;
 import com.bitshifters.rohit.popcorn.api.ReviewServiceResponse;
 import com.bitshifters.rohit.popcorn.api.Video;
 import com.bitshifters.rohit.popcorn.api.VideoServiceResponse;
+import com.bitshifters.rohit.popcorn.data.MovieColumns;
+import com.bitshifters.rohit.popcorn.data.MovieProvider;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -62,6 +70,7 @@ public class MovieDetailFragment extends Fragment {
     private VideoAdapter videoAdapter;
     private ReviewAdapter reviewAdapter;
     private ShareActionProvider shareActionProvider;
+    private boolean isFavorite;
 
     @Bind(R.id.review_cardview) CardView reviewView;
     @Bind(R.id.videos_cardview) CardView videoView;
@@ -75,6 +84,8 @@ public class MovieDetailFragment extends Fragment {
     @Bind(R.id.tvVote) TextView voteAverageText;
     @Bind(R.id.rbVote) RatingBar voteAverage;
     @Bind(R.id.ivPosterPortrait) ImageView posterPortrait;
+    @Bind(R.id.ibtnFavorite) ImageButton favoriteStar;
+    @Bind(R.id.tvFavoriteText) TextView favoriteText;
 
     public MovieDetailFragment() {
         setHasOptionsMenu(true);
@@ -130,7 +141,6 @@ public class MovieDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.movie_detail, container, false);
 
         mContext = rootView.getContext();
-
         //Binding Views
         ButterKnife.bind(this, rootView);
 
@@ -170,6 +180,7 @@ public class MovieDetailFragment extends Fragment {
                     .error(R.drawable.portrait_poster_not_found)
                     .into(posterPortrait);
 
+            setFavoriteButton();
         }
 
         return rootView;
@@ -192,7 +203,7 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void fetchVideos(final int id){
-        Log.v(TAG,"fetchVideos");
+//        Log.v(TAG, "fetchVideos");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(MovieDbOrgApiService.API_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -204,7 +215,7 @@ public class MovieDetailFragment extends Fragment {
             @Override
             public void onResponse(Call<VideoServiceResponse> call, Response<VideoServiceResponse> response) {
                 videos = (ArrayList) response.body().getVideos();
-                if(!videos.isEmpty()){
+                if (!videos.isEmpty()) {
                     videoView.setVisibility(View.VISIBLE);
                     videoAdapter.addDataSet(videos);
                 }
@@ -213,13 +224,13 @@ public class MovieDetailFragment extends Fragment {
 
             @Override
             public void onFailure(Call<VideoServiceResponse> call, Throwable t) {
-                Toast.makeText(mContext, "Failed to fetch videos", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Failed to fetch videos");
             }
         });
     }
 
     private void fetchReviews(final int id){
-        Log.v(TAG,"fetchReviews");
+//        Log.v(TAG,"fetchReviews");
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(MovieDbOrgApiService.API_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -240,9 +251,109 @@ public class MovieDetailFragment extends Fragment {
 
             @Override
             public void onFailure(Call<ReviewServiceResponse> call, Throwable t) {
-                Toast.makeText(mContext,"Failed to fetch Reviews",Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Failed to fetch Reviews");
             }
         });
+    }
+
+    @OnClick(R.id.ibtnFavorite)
+    public void onFavoriteClicked(){
+        Log.v(TAG,"clicked");
+        isFavorite = !isFavorite;
+        if(isFavorite){
+            addMovieToDb();
+        }else{
+            removeMovieFromDb();
+        }
+    }
+
+    private void changeFavoriteButtonColor(){
+        if(isFavorite){
+            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
+            favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
+        }else{
+            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_off));
+            favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
+        }
+    }
+
+    private void setFavoriteButton(){
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Cursor movieCursor = getContext().getContentResolver().query(
+                        MovieProvider.Movies.CONTENT_URI,
+                        new String[]{MovieColumns.ID},
+                        MovieColumns.ID + " = " + mMovie.getId(),
+                        null,
+                        null);
+
+                //Is in db
+                if (movieCursor != null && movieCursor.moveToFirst()) {
+                    movieCursor.close();
+                    isFavorite = true;
+                } else {//Not in db
+                    isFavorite = false;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                changeFavoriteButtonColor();
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void addMovieToDb(){
+        Log.v(TAG,"Adding");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                ContentValues moviesContent = new ContentValues();
+                moviesContent.put(MovieColumns.ID, mMovie.getId());
+                moviesContent.put(MovieColumns.POSTER_PATH, mMovie.getPosterPath());
+                moviesContent.put(MovieColumns.OVERVIEW, mMovie.getOverview());
+                moviesContent.put(MovieColumns.RELEASE_DATE, mMovie.getReleaseDate());
+                moviesContent.put(MovieColumns.TITLE, mMovie.getTitle());
+                moviesContent.put(MovieColumns.BACKDROP, mMovie.getBackdropPath());
+                moviesContent.put(MovieColumns.POPULARITY, mMovie.getPopularity());
+                moviesContent.put(MovieColumns.VOTE_COUNT, mMovie.getVoteCount());
+                moviesContent.put(MovieColumns.VOTE_AVERAGE, mMovie.getVoteAverage());
+                getContext().getContentResolver().insert(MovieProvider.Movies.CONTENT_URI, moviesContent);
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                Toast.makeText(mContext,"Saved to Favorites",Toast.LENGTH_SHORT).show();
+                changeFavoriteButtonColor();
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void removeMovieFromDb(){
+        Log.v(TAG,"Removing");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Uri uri = ContentUris.withAppendedId(MovieProvider.Movies.CONTENT_URI,mMovie.getId());
+                getContext().getContentResolver().delete(uri,
+                        null ,null);
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                Toast.makeText(mContext,"Removed from Favorites",Toast.LENGTH_SHORT).show();
+                changeFavoriteButtonColor();
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 }
