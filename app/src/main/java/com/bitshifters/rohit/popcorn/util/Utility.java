@@ -16,6 +16,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 /**
  * Created by rohit on 29/3/16.
  */
@@ -89,6 +92,15 @@ public class Utility {
         }
         shareText += " Shared via - "+ context.getResources().getString(R.string.app_name);
         return shareText;
+    }
+
+    public static MovieDbOrgApiService getMovieDbOrgApiService(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MovieDbOrgApiService.API_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        return retrofit.create(MovieDbOrgApiService.class);
     }
 
 }

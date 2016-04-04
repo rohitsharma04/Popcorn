@@ -37,6 +37,7 @@ public interface MovieDbOrgApiService {
     );
 
     //Provides List of Movies on some query
+    //Without Search Feature App feels incomplete
     @GET("search/movie")
     Call<MovieServiceResponse> searchResult(
       @Query("api_key") String apiKey,

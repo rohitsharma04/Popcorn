@@ -3,7 +3,9 @@ package com.bitshifters.rohit.popcorn.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,14 +29,17 @@ import butterknife.OnClick;
  * Created by rohit on 29/3/16.
  */
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
+        public static final int INITIAL_POSITION = 0;
 
-        private final List<Movie> mValues;
+        public final List<Movie> mValues;
         private MainActivity mMainActivity;
-        public MovieDetailFragment fragment;
+
+        public int lastClicked;
 
         public MovieAdapter(final MainActivity activity, List<Movie> items) {
             mValues = items;
             mMainActivity = activity;
+            lastClicked = INITIAL_POSITION;
         }
 
         @Override
@@ -48,15 +53,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
         public void changeDataSet(List<Movie> items){
             //deleting old movies
             mValues.clear();
-            mMainActivity.setmPosition(0);
+            lastClicked = INITIAL_POSITION;
             mValues.addAll(items);
             notifyDataSetChanged();
-
         }
 
         //When LoadMore is is called
         public void addDataSet(List<Movie> items){
-            mMainActivity.setmPosition(0);
             mValues.addAll(items);
             notifyDataSetChanged();
         }
@@ -73,7 +76,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
                     .into(holder.mPosterPortrait);
 
             //For Two Pane View for first time setup
-            if(mMainActivity.ismTwoPane() && position == mMainActivity.getmPosition()){
+            if(mMainActivity.ismTwoPane() && position == this.lastClicked){
                 holder.onClick(holder.mView);
             }
         }
@@ -97,17 +100,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
             @OnClick(R.id.ivPosterPortrait)
             public void onClick(View v) {
-                //Loading fragment in the MainActivity in Two Pane Mode and storing position
+                //Loading fragment in the MainActivity in Two Pane Mode and storing lastClicked
                 if (mMainActivity.ismTwoPane()) {
                     Bundle arguments = new Bundle();
                     arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mItem);
-                    fragment = new MovieDetailFragment();
+                    Fragment fragment = new MovieDetailFragment();
                     fragment.setArguments(arguments);
                     mMainActivity.getSupportFragmentManager().beginTransaction()
                             .replace(R.id.movie_detail_container, fragment)
                             .commit();
-                    mMainActivity.setmPosition(position);
-
+                    lastClicked = position;
                 } else {
                     //Starting Details Activity
                     Context context = v.getContext();

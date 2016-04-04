@@ -97,7 +97,6 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        Log.v(TAG, "onCreate");
         videos = new ArrayList<>();
         reviews = new ArrayList<>();
 
@@ -107,8 +106,58 @@ public class MovieDetailFragment extends Fragment {
     }
 
     @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Activity activity = this.getActivity();
+
+        View rootView = inflater.inflate(R.layout.movie_detail, container, false);
+
+        mContext = rootView.getContext();
+
+        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null && mMovie != null) {
+            appBarLayout.setTitle(mMovie.getTitle());
+        }
+
+        //Binding Views
+        ButterKnife.bind(this, rootView);
+
+        //Setting values
+        if (mMovie != null) {
+
+            setRecyclerView();
+            setAllViews();
+
+            setFavoriteButton();
+
+            //Restoring State
+            if(savedInstanceState != null){
+                if(savedInstanceState.containsKey(ARG_VIDEO)){
+                    videos =  savedInstanceState.getParcelableArrayList(ARG_VIDEO);
+                    videoAdapter.addDataSet(videos);
+                    videoView.setVisibility(View.VISIBLE);
+                    hasVideos = true;
+                }
+                if(savedInstanceState.containsKey(ARG_REVIEW)){
+                    reviews = savedInstanceState.getParcelableArrayList(ARG_REVIEW);
+                    reviewAdapter.addDataSet(reviews);
+                    reviewView.setVisibility(View.VISIBLE);
+                    hasReviews = true;
+                }
+            }
+        }
+
+        return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(ARG_VIDEO, videos);
+        outState.putParcelableArrayList(ARG_REVIEW, reviews);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        Log.v(TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.detail_fragment_menu, menu);
         MenuItem menuItem = menu.findItem(R.id.action_share);
         shareActionProvider =
@@ -118,80 +167,21 @@ public class MovieDetailFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    public void updateShareIntent(){
-//        Log.v(TAG,"updateShareIntent");
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, mMovie.getTitle());
-        shareIntent.putExtra(Intent.EXTRA_TEXT,
-                Utility.getShareActionText(mMovie, videos, mContext));
-        shareActionProvider.setShareIntent(shareIntent);
-    }
+    private void setAllViews() {
+        title.setText(mMovie.getTitle());
+        releaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
+        overview.setText(mMovie.getOverview());
+        voteAverage.setRating(mMovie.getVoteAverage() / 2);
+        voteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-//        Log.v(TAG,"onSaveInstance");
-        outState.putParcelableArrayList(ARG_VIDEO, videos);
-        outState.putParcelableArrayList(ARG_REVIEW, reviews);
-        super.onSaveInstanceState(outState);
-    }
+        Picasso.with(mContext)
+                .load(Utility.getPortraitPosterUrl(getActivity(),mMovie.getPosterPath()))
+                .error(R.drawable.portrait_poster_not_found)
+                .into(posterPortrait);
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        Log.v(TAG,"onCreateView");
-        Activity activity = this.getActivity();
-        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-        if (appBarLayout != null && mMovie != null) {
-            appBarLayout.setTitle(mMovie.getTitle());
-        }
-
-
-        View rootView = inflater.inflate(R.layout.movie_detail, container, false);
-
-        mContext = rootView.getContext();
-        //Binding Views
-        ButterKnife.bind(this, rootView);
-
-        //Setting values
-        if (mMovie != null) {
-
-            setRecyclerView();
-
-            title.setText(mMovie.getTitle());
-            releaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
-            overview.setText(mMovie.getOverview());
-            voteAverage.setRating(mMovie.getVoteAverage() / 2);
-            voteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
-
-            Picasso.with(rootView.getContext())
-                    .load(Utility.getPortraitPosterUrl(getActivity(),mMovie.getPosterPath()))
-                    .error(R.drawable.portrait_poster_not_found)
-                    .into(posterPortrait);
-
-            setFavoriteButton();
-
-            //Restoring State
-
-            if(savedInstanceState != null){
-                if(savedInstanceState.containsKey(ARG_VIDEO)){
-                    videos =  savedInstanceState.getParcelableArrayList(ARG_VIDEO);
-                    videoAdapter.addDataSet(videos);
-                    hasVideos = true;
-                }
-                if(savedInstanceState.containsKey(ARG_REVIEW)){
-                    reviews = savedInstanceState.getParcelableArrayList(ARG_REVIEW);
-                    reviewAdapter.addDataSet(reviews);
-                    hasReviews = true;
-                }
-            }
-        }
-
-        return rootView;
     }
 
     private void setRecyclerView(){
-//        Log.v(TAG, "setRecyclerview");
         //Setting Video Adapter
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         manager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -207,19 +197,23 @@ public class MovieDetailFragment extends Fragment {
         recyclerViewReview.setAdapter(reviewAdapter);
     }
 
-    private void fetchVideos(final int id){
-//        Log.v(TAG, "fetchVideos");
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(MovieDbOrgApiService.API_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    public void updateShareIntent(){
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, mMovie.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_TEXT,
+                Utility.getShareActionText(mMovie, videos, mContext));
+        shareActionProvider.setShareIntent(shareIntent);
+    }
 
-        MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
-        Call<VideoServiceResponse> call = movieDbOrgApiService.videoList(id, MovieDbOrgApiService.API_KEY);
+    private void fetchVideos(final int id){
+        Call<VideoServiceResponse> call = Utility.getMovieDbOrgApiService()
+                .videoList(id, MovieDbOrgApiService.API_KEY);
         call.enqueue(new Callback<VideoServiceResponse>() {
             @Override
             public void onResponse(Call<VideoServiceResponse> call, Response<VideoServiceResponse> response) {
-                videos = (ArrayList) response.body().getVideos();
+                videos.addAll(response.body().getVideos());
                 if (!videos.isEmpty()) {
                     videoView.setVisibility(View.VISIBLE);
                     videoAdapter.addDataSet(videos);
@@ -235,19 +229,13 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void fetchReviews(final int id){
-//        Log.v(TAG,"fetchReviews");
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(MovieDbOrgApiService.API_BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
 
-        MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
-
-        Call<ReviewServiceResponse> call = movieDbOrgApiService.reviewList(id, MovieDbOrgApiService.API_KEY);
+        Call<ReviewServiceResponse> call = Utility.getMovieDbOrgApiService()
+                .reviewList(id, MovieDbOrgApiService.API_KEY);
         call.enqueue(new Callback<ReviewServiceResponse>() {
             @Override
             public void onResponse(Call<ReviewServiceResponse> call, Response<ReviewServiceResponse> response) {
-                reviews = (ArrayList) response.body().getReviews();
+                reviews.addAll(response.body().getReviews());
                 if(!reviews.isEmpty()){
                     reviewView.setVisibility(View.VISIBLE);
                     reviewAdapter.addDataSet(reviews);
@@ -264,7 +252,6 @@ public class MovieDetailFragment extends Fragment {
 
     @OnClick(R.id.ibtnFavorite)
     public void onFavoriteClicked(){
-//        Log.v(TAG,"clicked");
         isFavorite = !isFavorite;
         if(isFavorite){
             addMovieToDb();
@@ -277,19 +264,7 @@ public class MovieDetailFragment extends Fragment {
         }
     }
 
-    private void changeFavoriteButtonColor(){
-//        Log.v(TAG, "changeFavoriteButton");
-        if(isFavorite){
-            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
-            favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
-        }else{
-            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_off));
-            favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
-        }
-    }
-
     private void setFavoriteButton(){
-//        Log.v(TAG,"setFavoriteButton");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -328,8 +303,17 @@ public class MovieDetailFragment extends Fragment {
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
+    private void changeFavoriteButtonColor(){
+        if(isFavorite){
+            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
+            favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
+        }else{
+            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_off));
+            favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
+        }
+    }
+
     private void fetchVideoFromDb(){
-//        Log.v(TAG,"fetchvideo from db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -368,7 +352,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void fetchReviewFromDb(){
-//        Log.v(TAG,"fetchReview from db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -403,7 +386,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void addVideoToDb(final List<Video> videos){
-//        Log.v(TAG,"addVideoTodb");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -433,7 +415,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void addReviewToDb(final List<Review> reviews){
-//        Log.v(TAG,"addReview to db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -459,7 +440,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void addMovieToDb(){
-//        Log.v(TAG,"Adding movie to db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -488,7 +468,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void removeMovieFromDb(){
-//        Log.v(TAG,"Removing movie from db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -509,7 +488,6 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void removeVideoFromDb(){
-//        Log.v(TAG,"Removing video");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -522,8 +500,7 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void removeReviewFromDb(){
-//        Log.v(TAG,"Removing review");
-        new AsyncTask<Void,Void, Void>(){
+       new AsyncTask<Void,Void, Void>(){
 
             @Override
             protected Void doInBackground(Void... params) {
