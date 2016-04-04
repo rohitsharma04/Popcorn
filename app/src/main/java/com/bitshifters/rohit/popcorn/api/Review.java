@@ -27,6 +27,13 @@ public class Review implements Parcelable {
     @Expose
     public String url;
 
+    public Review(String id, String author, String content, String url) {
+        this.id = id;
+        this.author = author;
+        this.content = content;
+        this.url = url;
+    }
+
     @Override
     public int describeContents() {
         return 0;

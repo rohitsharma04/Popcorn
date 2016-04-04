@@ -453,7 +453,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.v(TAG,"onCreateLoader");
-        return new CursorLoader(this, MovieProvider.buildUri(MovieProvider.Path.MOVIES), MovieTableMeta.COLUMNS,
+        return new CursorLoader(this, MovieProvider.MOVIES_URI, MovieTableMeta.COLUMNS,
                 null, null, null);
     }
 
@@ -502,8 +502,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 changeMovieList(MovieDbOrgApiService.SORT_BY_UPCOMING);
                 break;
             case R.id.item_favorite:
-//                Toast.makeText(this,"Favorite Selected",Toast.LENGTH_SHORT).show();
-                changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
+               changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
                 break;
             case R.id.item_about:
                 Toast.makeText(this, "Open About App Page", Toast.LENGTH_SHORT).show();

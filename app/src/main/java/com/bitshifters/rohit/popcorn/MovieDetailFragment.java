@@ -37,10 +37,13 @@ import com.bitshifters.rohit.popcorn.api.Video;
 import com.bitshifters.rohit.popcorn.api.VideoServiceResponse;
 import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
+import com.bitshifters.rohit.popcorn.data.ReviewTableMeta;
+import com.bitshifters.rohit.popcorn.data.VideoTableMeta;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -69,6 +72,7 @@ public class MovieDetailFragment extends Fragment {
     private ReviewAdapter reviewAdapter;
     private ShareActionProvider shareActionProvider;
     private boolean isFavorite;
+    private boolean hasVideos,hasReviews;
 
     @Bind(R.id.review_cardview) CardView reviewView;
     @Bind(R.id.videos_cardview) CardView videoView;
@@ -93,6 +97,10 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+//        Log.v(TAG, "onCreate");
+        videos = new ArrayList<>();
+        reviews = new ArrayList<>();
+
         if (getArguments().containsKey(ARG_MOVIE)) {
             mMovie = (Movie) getArguments().getParcelable(ARG_MOVIE);
         }
@@ -100,6 +108,7 @@ public class MovieDetailFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        Log.v(TAG, "onCreateOptionsMenu");
         inflater.inflate(R.menu.detail_fragment_menu, menu);
         MenuItem menuItem = menu.findItem(R.id.action_share);
         shareActionProvider =
@@ -110,10 +119,11 @@ public class MovieDetailFragment extends Fragment {
     }
 
     public void updateShareIntent(){
+//        Log.v(TAG,"updateShareIntent");
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT,mMovie.getTitle());
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, mMovie.getTitle());
         shareIntent.putExtra(Intent.EXTRA_TEXT,
                 Utility.getShareActionText(mMovie, videos, mContext));
         shareActionProvider.setShareIntent(shareIntent);
@@ -121,6 +131,7 @@ public class MovieDetailFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+//        Log.v(TAG,"onSaveInstance");
         outState.putParcelableArrayList(ARG_VIDEO, videos);
         outState.putParcelableArrayList(ARG_REVIEW, reviews);
         super.onSaveInstanceState(outState);
@@ -128,7 +139,7 @@ public class MovieDetailFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+//        Log.v(TAG,"onCreateView");
         Activity activity = this.getActivity();
         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
         if (appBarLayout != null && mMovie != null) {
@@ -147,26 +158,6 @@ public class MovieDetailFragment extends Fragment {
 
             setRecyclerView();
 
-            //Restoring State
-            if(savedInstanceState != null){
-                if(savedInstanceState.containsKey(ARG_VIDEO)){
-                    videos =  savedInstanceState.getParcelableArrayList(ARG_VIDEO);
-                    videoAdapter.addDataSet(videos);
-                }else{
-                    fetchVideos(mMovie.getId());
-                }
-                if(savedInstanceState.containsKey(ARG_REVIEW)){
-                    reviews = savedInstanceState.getParcelableArrayList(ARG_REVIEW);
-                    reviewAdapter.addDataSet(reviews);
-                }else{
-                    fetchReviews(mMovie.getId());
-                }
-            }else{
-                fetchVideos(mMovie.getId());
-                fetchReviews(mMovie.getId());
-            }
-
-
             title.setText(mMovie.getTitle());
             releaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
             overview.setText(mMovie.getOverview());
@@ -179,12 +170,28 @@ public class MovieDetailFragment extends Fragment {
                     .into(posterPortrait);
 
             setFavoriteButton();
+
+            //Restoring State
+
+            if(savedInstanceState != null){
+                if(savedInstanceState.containsKey(ARG_VIDEO)){
+                    videos =  savedInstanceState.getParcelableArrayList(ARG_VIDEO);
+                    videoAdapter.addDataSet(videos);
+                    hasVideos = true;
+                }
+                if(savedInstanceState.containsKey(ARG_REVIEW)){
+                    reviews = savedInstanceState.getParcelableArrayList(ARG_REVIEW);
+                    reviewAdapter.addDataSet(reviews);
+                    hasReviews = true;
+                }
+            }
         }
 
         return rootView;
     }
 
     private void setRecyclerView(){
+//        Log.v(TAG, "setRecyclerview");
         //Setting Video Adapter
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         manager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -244,6 +251,7 @@ public class MovieDetailFragment extends Fragment {
                 if(!reviews.isEmpty()){
                     reviewView.setVisibility(View.VISIBLE);
                     reviewAdapter.addDataSet(reviews);
+
                 }
             }
 
@@ -256,16 +264,21 @@ public class MovieDetailFragment extends Fragment {
 
     @OnClick(R.id.ibtnFavorite)
     public void onFavoriteClicked(){
-        Log.v(TAG,"clicked");
+//        Log.v(TAG,"clicked");
         isFavorite = !isFavorite;
         if(isFavorite){
             addMovieToDb();
+            addVideoToDb(videos);
+            addReviewToDb(reviews);
         }else{
             removeMovieFromDb();
+            removeVideoFromDb();
+            removeReviewFromDb();
         }
     }
 
     private void changeFavoriteButtonColor(){
+//        Log.v(TAG, "changeFavoriteButton");
         if(isFavorite){
             favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
             favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
@@ -276,12 +289,13 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void setFavoriteButton(){
+//        Log.v(TAG,"setFavoriteButton");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
             protected Void doInBackground(Void... params) {
                 Cursor movieCursor = getContext().getContentResolver().query(
-                        MovieProvider.buildUri(MovieProvider.Path.MOVIES),
+                        MovieProvider.MOVIES_URI,
                         new String[]{MovieTableMeta.ID},
                         MovieTableMeta.ID + " = " + mMovie.getId(),
                         null,
@@ -300,12 +314,152 @@ public class MovieDetailFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 changeFavoriteButtonColor();
+                if(isFavorite){
+                    fetchVideoFromDb();
+                    fetchReviewFromDb();
+                }
+                if (!isFavorite && !hasVideos) {
+                    fetchVideos(mMovie.getId());
+                }
+                if(!isFavorite && !hasReviews){
+                    fetchReviews(mMovie.getId());
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void fetchVideoFromDb(){
+//        Log.v(TAG,"fetchvideo from db");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Cursor videoCursor = getContext().getContentResolver().query(
+                        MovieProvider.VIDEOS_URI,
+                        VideoTableMeta.COLUMNS,
+                        VideoTableMeta.MOVIE_ID + " = " + mMovie.getId(),
+                        null,
+                        null);
+                if(videoCursor != null) {
+                    while (videoCursor.moveToNext()) {
+                        String id = videoCursor.getString(VideoTableMeta.ID_ID);
+                        String iso6391 = videoCursor.getString(VideoTableMeta.ISO6391_ID);
+                        String iso31661 = videoCursor.getString(VideoTableMeta.ISO31661_ID);
+                        String key = videoCursor.getString(VideoTableMeta.KEY_ID);
+                        String name = videoCursor.getString(VideoTableMeta.NAME_ID);
+                        String site = videoCursor.getString(VideoTableMeta.SITE_ID);
+                        Integer size = videoCursor.getInt(VideoTableMeta.SITE_ID);
+                        String type = videoCursor.getString(VideoTableMeta.TYPE_ID);
+                        videos.add(new Video(id,iso6391,iso31661,key,name,site,size,type));
+                    }
+                    videoCursor.close();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if(!videos.isEmpty()) {
+                    videoView.setVisibility(View.VISIBLE);
+                    videoAdapter.addDataSet(videos);
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void fetchReviewFromDb(){
+//        Log.v(TAG,"fetchReview from db");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Cursor reviewCursor = getContext().getContentResolver().query(
+                        MovieProvider.REVIEWS_URI,
+                        ReviewTableMeta.COLUMNS,
+                        ReviewTableMeta.MOVIE_ID + " = " + mMovie.getId(),
+                        null,
+                        null);
+                if(reviewCursor != null) {
+                    while (reviewCursor.moveToNext()) {
+                        String id = reviewCursor.getString(ReviewTableMeta.ID_ID);
+                        String author = reviewCursor.getString(ReviewTableMeta.AUTHOR_ID);
+                        String content= reviewCursor.getString(ReviewTableMeta.CONTENT_ID);
+                        String url= reviewCursor.getString(ReviewTableMeta.URL_ID);
+                        reviews.add(new Review(id,author,content,url));
+                    }
+                    reviewCursor.close();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if(!reviews.isEmpty()) {
+                    reviewView.setVisibility(View.VISIBLE);
+                    reviewAdapter.addDataSet(reviews);
+                }
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void addVideoToDb(final List<Video> videos){
+//        Log.v(TAG,"addVideoTodb");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                ArrayList<ContentValues> vidoesValues = new ArrayList<ContentValues>();
+                for(Video video: videos){
+                    ContentValues values = new ContentValues();
+
+                    values.put(VideoTableMeta.MOVIE_ID,mMovie.getId());
+                    values.put(VideoTableMeta.ID, video.getId());
+                    values.put(VideoTableMeta.ISO6391, video.getIso6391());
+                    values.put(VideoTableMeta.ISO31661, video.getIso31661());
+                    values.put(VideoTableMeta.KEY, video.getKey());
+                    values.put(VideoTableMeta.NAME, video.getName());
+                    values.put(VideoTableMeta.SITE, video.getSite());
+                    values.put(VideoTableMeta.SIZE, video.getSize());
+                    values.put(VideoTableMeta.TYPE, video.getType());
+
+                    vidoesValues.add(values);
+                }
+                getContext().getContentResolver().bulkInsert(MovieProvider.VIDEOS_URI,
+                        vidoesValues.toArray(new ContentValues[vidoesValues.size()]));
+
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void addReviewToDb(final List<Review> reviews){
+//        Log.v(TAG,"addReview to db");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                ArrayList<ContentValues> reviewValues = new ArrayList<ContentValues>();
+                for(Review review: reviews){
+                    ContentValues values = new ContentValues();
+
+                    values.put(ReviewTableMeta.MOVIE_ID,mMovie.getId());
+                    values.put(ReviewTableMeta.ID, review.getId());
+                    values.put(ReviewTableMeta.AUTHOR, review.getAuthor());
+                    values.put(ReviewTableMeta.CONTENT, review.getContent());
+                    values.put(ReviewTableMeta.URL, review.getUrl());
+
+                    reviewValues.add(values);
+                }
+                getContext().getContentResolver().bulkInsert(MovieProvider.REVIEWS_URI,
+                        reviewValues.toArray(new ContentValues[reviewValues.size()]));
+
+                return null;
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     private void addMovieToDb(){
-        Log.v(TAG,"Adding");
+//        Log.v(TAG,"Adding movie to db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
@@ -320,7 +474,7 @@ public class MovieDetailFragment extends Fragment {
                 moviesContent.put(MovieTableMeta.POPULARITY, mMovie.getPopularity());
                 moviesContent.put(MovieTableMeta.VOTE_COUNT, mMovie.getVoteCount());
                 moviesContent.put(MovieTableMeta.VOTE_AVERAGE, mMovie.getVoteAverage());
-                getContext().getContentResolver().insert(MovieProvider.buildUri(MovieProvider.Path.MOVIES), moviesContent);
+                getContext().getContentResolver().insert(MovieProvider.MOVIES_URI, moviesContent);
 
                 return null;
             }
@@ -334,13 +488,14 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void removeMovieFromDb(){
-        Log.v(TAG,"Removing");
+//        Log.v(TAG,"Removing movie from db");
         new AsyncTask<Void,Void, Void>(){
 
             @Override
             protected Void doInBackground(Void... params) {
-                getContext().getContentResolver().delete(MovieProvider.buildUri(MovieProvider.Path.MOVIES),
-                        MovieTableMeta.ID + " = "+mMovie.getId() ,null);
+                getContext().getContentResolver().delete(MovieProvider.MOVIES_URI,
+                        MovieTableMeta.ID + " = " + mMovie.getId(), null);
+
 
                 return null;
             }
@@ -349,6 +504,32 @@ public class MovieDetailFragment extends Fragment {
             protected void onPostExecute(Void aVoid) {
                 Toast.makeText(mContext,"Removed from Favorites",Toast.LENGTH_SHORT).show();
                 changeFavoriteButtonColor();
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void removeVideoFromDb(){
+//        Log.v(TAG,"Removing video");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                getContext().getContentResolver().delete(MovieProvider.VIDEOS_URI,
+                        VideoTableMeta.MOVIE_ID + " = " + mMovie.getId(), null);
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void removeReviewFromDb(){
+//        Log.v(TAG,"Removing review");
+        new AsyncTask<Void,Void, Void>(){
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                getContext().getContentResolver().delete(MovieProvider.REVIEWS_URI,
+                        ReviewTableMeta.MOVIE_ID + " = " + mMovie.getId(), null);
+                return null;
             }
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }

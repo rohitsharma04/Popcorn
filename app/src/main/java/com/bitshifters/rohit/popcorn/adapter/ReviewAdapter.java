@@ -36,6 +36,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
     }
 
     public void addDataSet(List<Review> items){
+        mValues.clear();
         mValues.addAll(items);
         notifyDataSetChanged();
     }

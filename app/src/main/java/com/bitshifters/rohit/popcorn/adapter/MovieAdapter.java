@@ -48,6 +48,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
         public void changeDataSet(List<Movie> items){
             //deleting old movies
             mValues.clear();
+            mMainActivity.setmPosition(0);
             mValues.addAll(items);
             notifyDataSetChanged();
 
@@ -55,6 +56,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
         //When LoadMore is is called
         public void addDataSet(List<Movie> items){
+            mMainActivity.setmPosition(0);
             mValues.addAll(items);
             notifyDataSetChanged();
         }
