@@ -1,9 +1,7 @@
 package com.bitshifters.rohit.popcorn;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -11,16 +9,13 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 
 import com.bitshifters.rohit.popcorn.adapter.InfiniteRecyclerOnScrollListener;
@@ -28,6 +23,7 @@ import com.bitshifters.rohit.popcorn.adapter.MovieAdapter;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 import com.bitshifters.rohit.popcorn.api.MovieServiceResponse;
+import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
@@ -53,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String ARG_MOVIE_SERVICE_RESPONSE = "arg_movie_service_response";
     private static final int FIRST_PAGE = 1;
     private static final String LIST_POSITION = "listPosition";
-    private static final int FAVORITE_MOVIES_LOADER = 0;
+    public static final int FAVORITE_MOVIES_LOADER = 0;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.pbLoadingSpinner) ProgressBar progressBar;
@@ -365,19 +361,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         List<Movie> movies = new ArrayList<>();
         if(cursor != null) {
             while (cursor.moveToNext()) {
-                String posterPath = cursor.getString(MovieProvider.POSTER_PATH_ID);
-                String overview = cursor.getString(MovieProvider.OVERVIEW_ID);
-                String releaseDate = cursor.getString(MovieProvider.RELEASE_DATE_ID);
-                Integer id = cursor.getInt(MovieProvider.ID_ID);
-                String title = cursor.getString(MovieProvider.TITLE_ID);
-                String backdropPath = cursor.getString(MovieProvider.BACKDROP_ID);
-                Float popularity = cursor.getFloat(MovieProvider.POPULARITY_ID);
-                Integer voteCount = cursor.getInt(MovieProvider.VOTE_COUNT_ID);
-                Float voteAverage = cursor.getFloat(MovieProvider.VOTE_AVERAGE_ID);
+                String posterPath = cursor.getString(MovieTableMeta.POSTER_PATH_ID);
+                String overview = cursor.getString(MovieTableMeta.OVERVIEW_ID);
+                String releaseDate = cursor.getString(MovieTableMeta.RELEASE_DATE_ID);
+                Integer id = cursor.getInt(MovieTableMeta.ID_ID);
+                String title = cursor.getString(MovieTableMeta.TITLE_ID);
+                String backdropPath = cursor.getString(MovieTableMeta.BACKDROP_ID);
+                Float popularity = cursor.getFloat(MovieTableMeta.POPULARITY_ID);
+                Integer voteCount = cursor.getInt(MovieTableMeta.VOTE_COUNT_ID);
+                Float voteAverage = cursor.getFloat(MovieTableMeta.VOTE_AVERAGE_ID);
                 movies.add(new Movie(posterPath, overview, releaseDate, id,
                         title, backdropPath, popularity, voteCount, voteAverage));
             }
-            cursor.close();
+            //Note to self : Never Close this Cursor Otherwise You'll waste 16 Hours
+            //Trying to figure out why data monitoring isn't happening.
+//            cursor.close();
         }
         mMovieServiceResponse.setMovies(movies);
         //Updating the adapter
@@ -411,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.v(TAG,"onCreateLoader");
-        return new CursorLoader(this,MovieProvider.Movies.CONTENT_URI, MovieProvider.COLUMNS,
+        return new CursorLoader(this, MovieProvider.buildUri(MovieProvider.Path.MOVIES), MovieTableMeta.COLUMNS,
                 null, null, null);
     }
 
@@ -426,11 +424,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.v(TAG,"onLoaderReset");
     }
 
-    @Override
-    protected void onRestart() {
-        if (!isSearch && Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
-            getSupportLoaderManager().restartLoader(FAVORITE_MOVIES_LOADER, null, this);
-        }
-        super.onRestart();
-    }
 }

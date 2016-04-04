@@ -1,12 +1,10 @@
 package com.bitshifters.rohit.popcorn;
 
 import android.app.Activity;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
@@ -37,7 +35,7 @@ import com.bitshifters.rohit.popcorn.api.Review;
 import com.bitshifters.rohit.popcorn.api.ReviewServiceResponse;
 import com.bitshifters.rohit.popcorn.api.Video;
 import com.bitshifters.rohit.popcorn.api.VideoServiceResponse;
-import com.bitshifters.rohit.popcorn.data.MovieColumns;
+import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
@@ -283,9 +281,9 @@ public class MovieDetailFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 Cursor movieCursor = getContext().getContentResolver().query(
-                        MovieProvider.Movies.CONTENT_URI,
-                        new String[]{MovieColumns.ID},
-                        MovieColumns.ID + " = " + mMovie.getId(),
+                        MovieProvider.buildUri(MovieProvider.Path.MOVIES),
+                        new String[]{MovieTableMeta.ID},
+                        MovieTableMeta.ID + " = " + mMovie.getId(),
                         null,
                         null);
 
@@ -313,16 +311,16 @@ public class MovieDetailFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... params) {
                 ContentValues moviesContent = new ContentValues();
-                moviesContent.put(MovieColumns.ID, mMovie.getId());
-                moviesContent.put(MovieColumns.POSTER_PATH, mMovie.getPosterPath());
-                moviesContent.put(MovieColumns.OVERVIEW, mMovie.getOverview());
-                moviesContent.put(MovieColumns.RELEASE_DATE, mMovie.getReleaseDate());
-                moviesContent.put(MovieColumns.TITLE, mMovie.getTitle());
-                moviesContent.put(MovieColumns.BACKDROP, mMovie.getBackdropPath());
-                moviesContent.put(MovieColumns.POPULARITY, mMovie.getPopularity());
-                moviesContent.put(MovieColumns.VOTE_COUNT, mMovie.getVoteCount());
-                moviesContent.put(MovieColumns.VOTE_AVERAGE, mMovie.getVoteAverage());
-                getContext().getContentResolver().insert(MovieProvider.Movies.CONTENT_URI, moviesContent);
+                moviesContent.put(MovieTableMeta.ID, mMovie.getId());
+                moviesContent.put(MovieTableMeta.POSTER_PATH, mMovie.getPosterPath());
+                moviesContent.put(MovieTableMeta.OVERVIEW, mMovie.getOverview());
+                moviesContent.put(MovieTableMeta.RELEASE_DATE, mMovie.getReleaseDate());
+                moviesContent.put(MovieTableMeta.TITLE, mMovie.getTitle());
+                moviesContent.put(MovieTableMeta.BACKDROP, mMovie.getBackdropPath());
+                moviesContent.put(MovieTableMeta.POPULARITY, mMovie.getPopularity());
+                moviesContent.put(MovieTableMeta.VOTE_COUNT, mMovie.getVoteCount());
+                moviesContent.put(MovieTableMeta.VOTE_AVERAGE, mMovie.getVoteAverage());
+                getContext().getContentResolver().insert(MovieProvider.buildUri(MovieProvider.Path.MOVIES), moviesContent);
 
                 return null;
             }
@@ -341,9 +339,8 @@ public class MovieDetailFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... params) {
-                Uri uri = ContentUris.withAppendedId(MovieProvider.Movies.CONTENT_URI,mMovie.getId());
-                getContext().getContentResolver().delete(uri,
-                        null ,null);
+                getContext().getContentResolver().delete(MovieProvider.buildUri(MovieProvider.Path.MOVIES),
+                        MovieTableMeta.ID + " = "+mMovie.getId() ,null);
 
                 return null;
             }

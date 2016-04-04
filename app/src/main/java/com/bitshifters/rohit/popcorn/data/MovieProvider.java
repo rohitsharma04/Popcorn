@@ -2,30 +2,26 @@ package com.bitshifters.rohit.popcorn.data;
 
 import android.net.Uri;
 
-import net.simonvt.schematic.annotation.ContentProvider;
-import net.simonvt.schematic.annotation.ContentUri;
-import net.simonvt.schematic.annotation.InexactContentUri;
-import net.simonvt.schematic.annotation.TableEndpoint;
+import de.triplet.simpleprovider.AbstractProvider;
+import de.triplet.simpleprovider.Column;
+import de.triplet.simpleprovider.Table;
 
 /**
  * Created by rohit on 3/4/16.
  */
-@ContentProvider(authority = MovieProvider.AUTHORITY, database = MoviesDatabase.class)
-public class MovieProvider {
+public class MovieProvider extends AbstractProvider {
+
     public static final String AUTHORITY = "com.bitshifters.rohit.popcorn.data.MovieProvider";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 
-    public static final String [] COLUMNS = {"_id","poster_path","overview",
-            "release_date","title","backdrop","popularity","vote_count","vote_average"};
+    private static final int SCHEMA_VERSION = 1;
 
-    public static final int ID_ID = 0, POSTER_PATH_ID = 1, OVERVIEW_ID = 2, RELEASE_DATE_ID = 3
-            ,TITLE_ID = 4, BACKDROP_ID = 5, POPULARITY_ID = 6, VOTE_COUNT_ID = 7, VOTE_AVERAGE_ID = 8;
-
-    interface Path{
-        String MOVIES = "movies";
+    @Override
+    protected String getAuthority() {
+        return AUTHORITY;
     }
 
-    private static Uri buildUri(String ... paths){
+    public static Uri buildUri(String ... paths){
         Uri.Builder builder = BASE_CONTENT_URI.buildUpon();
         for (String path : paths){
             builder.appendPath(path);
@@ -33,21 +29,45 @@ public class MovieProvider {
         return builder.build();
     }
 
-    @TableEndpoint(table = MoviesDatabase.MOVIES) public static class Movies{
-        @ContentUri(
-                path = Path.MOVIES,
-                type = "vnd.android.cursor.dir/movie",
-                defaultSort = MovieColumns.VOTE_AVERAGE + " DESC")
-        public static final Uri CONTENT_URI = buildUri(Path.MOVIES);
-
-        @InexactContentUri(
-                name = "MOVIE_ID",
-                path = Path.MOVIES + "/#",
-                type = "vnd.android.cursor.item/movie",
-                whereColumn = MovieColumns.ID,
-                pathSegment = 1)
-        public static Uri withId(long id){
-            return buildUri(Path.MOVIES, String.valueOf(id));
-        }
+    public static interface Path{
+        String MOVIES = "movies";
     }
+
+    @Table
+    public class Movie {
+
+        @Column(Column.FieldType.INTEGER)
+        public static final String ID = "_id";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String POSTER_PATH = "poster_path";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String OVERVIEW = "overview";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String RELEASE_DATE = "release_date";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String TITLE = "title";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String BACKDROP = "backdrop";
+
+        @Column(Column.FieldType.REAL)
+        public static final String POPULARITY = "popularity";
+
+        @Column(Column.FieldType.INTEGER)
+        public static final String VOTE_COUNT = "vote_count";
+
+        @Column(Column.FieldType.REAL)
+        public static final String VOTE_AVERAGE = "vote_average";
+
+    }
+
+    @Override
+    protected int getSchemaVersion() {
+        return SCHEMA_VERSION;
+    }
+
 }
