@@ -1,37 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
         android:orderInCategory="5"
-        android:title="search_movies"
+        android:title="@string/search_movies"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_sortBy"
-        app:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
-        android:title="@string/sort_by"
-        android:orderInCategory="3">
-        <menu>
-            <item
-                android:id="@+id/action_sort_popular"
-                android:title="@string/sort_popular"/>
-            <item
-                android:id="@+id/action_sort_top_rated"
-                android:title="@string/sort_top_rated"/>
-            <item
-                android:id="@+id/action_sort_now_playing"
-                android:title="@string/sort_now_playing"/>
-            <item
-                android:id="@+id/action_sort_upcoming"
-                android:title="@string/sort_upcoming"/>
-            <item
-                android:id="@+id/action_sort_favorite"
-                android:title="@string/sort_favorite"/>
-        </menu>
-    </item>
+        android:id="@+id/action_sort_popular"
+        android:title="@string/sort_popular" />
+    <item
+        android:id="@+id/action_sort_top_rated"
+        android:title="@string/sort_top_rated" />
+    <item
+        android:id="@+id/action_sort_now_playing"
+        android:title="@string/sort_now_playing" />
+    <item
+        android:id="@+id/action_sort_upcoming"
+        android:title="@string/sort_upcoming" />
+    <item
+        android:id="@+id/action_sort_favorite"
+        android:title="@string/sort_favorite" />
+
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/about_app" />
 </menu>

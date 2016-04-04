@@ -3,9 +3,13 @@ package com.bitshifters.rohit.popcorn;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 
 import com.bitshifters.rohit.popcorn.adapter.InfiniteRecyclerOnScrollListener;
@@ -43,7 +48,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by rohit on 29/3/16.
  */
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, NavigationView.OnNavigationItemSelectedListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String ARG_MOVIE_SERVICE_RESPONSE = "arg_movie_service_response";
@@ -52,9 +57,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final int FAVORITE_MOVIES_LOADER = 0;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
-    @Bind(R.id.pbLoadingSpinner) ProgressBar progressBar;
+    @Bind(R.id.pbProgressBar) ProgressBar progressBar;
     @Bind(R.id.movie_list) RecyclerView recyclerView;
     @Bind(R.id.search_view) MaterialSearchView searchView;
+    @Bind(R.id.drawer_layout) DrawerLayout drawerLayout;
+    @Bind(R.id.nav_view) NavigationView navigationView;
 
     private boolean mTwoPane;
     private int mPosition = 0;
@@ -97,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 fetchMoviesBySortType(FIRST_PAGE);
             }
         }
+
     }
 
     private void initializeEverything(){
@@ -117,6 +125,36 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         //Setting Search View
         setupSearchView();
 
+        setupDrawerLayout();
+
+    }
+
+    private void setupDrawerLayout() {
+        //Setting up the Navigation Drawer
+        navigationView.setNavigationItemSelectedListener(this);
+
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
+                R.string.drawer_open, R.string.drawer_close);
+        drawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.syncState();
+
+        switch (Utility.getSortPreference(this)){
+            case MovieDbOrgApiService.SORT_BY_POPULAR:
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(0).setChecked(true);
+                break;
+            case MovieDbOrgApiService.SORT_BY_TOP_RATED:
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(1).setChecked(true);
+                break;
+            case MovieDbOrgApiService.SORT_BY_NOW_PLAYING:
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(2).setChecked(true);
+                break;
+            case MovieDbOrgApiService.SORT_BY_UPCOMING:
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(3).setChecked(true);
+                break;
+            case MovieDbOrgApiService.SORT_BY_FAVORITE:
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(4).setChecked(true);
+                break;
+        }
     }
 
     private void setupSearchView() {
@@ -133,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 mInfiniteRecyclerOnScrollListener.resetScrollSettings();
                 recyclerView.removeOnScrollListener(mInfiniteRecyclerOnScrollListener);
                 searchMovies(query);
-                toolbar.setSubtitle("Search Results for "+ query);
+                toolbar.setSubtitle("Search Results for " + query);
                 return true;
             }
 
@@ -192,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     private void setToolbarSubtitle(){
+
         switch (Utility.getSortPreference(getApplication())){
             case MovieDbOrgApiService.SORT_BY_POPULAR:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_popular));
@@ -209,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 toolbar.setSubtitle(getResources().getString(R.string.sort_favorite));
                 break;
         }
+
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -264,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void fetchMoviesBySortType(final int page){
-        Log.v(TAG,"Fetch Movies");
+        Log.v(TAG, "Fetch Movies");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
@@ -310,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void searchMovies(String query){
-        Log.v(TAG,"Search Movies");
+        Log.v(TAG, "Search Movies");
         //Showing progress bar
         progressBar.setVisibility(View.VISIBLE);
 
@@ -324,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         MovieDbOrgApiService movieDbOrgApiService = retrofit.create(MovieDbOrgApiService.class);
 
-        Call<MovieServiceResponse> call= movieDbOrgApiService.searchResult(MovieDbOrgApiService.API_KEY,query);
+        Call<MovieServiceResponse> call= movieDbOrgApiService.searchResult(MovieDbOrgApiService.API_KEY, query);
         call.enqueue(new Callback<MovieServiceResponse>() {
 
             @Override
@@ -399,9 +439,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onBackPressed() {
+
         if (searchView.isSearchOpen()) {
             searchView.closeSearch();
-        } else {
+        }else if(drawerLayout.isDrawerOpen(GravityCompat.START)){
+            hideDrawer();
+        }
+        else {
             super.onBackPressed();
         }
     }
@@ -421,7 +465,50 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Log.v(TAG,"onLoaderReset");
+        Log.v(TAG, "onLoaderReset");
     }
 
+    // Open the Drawer
+    private void showDrawer() {
+        drawerLayout.openDrawer(GravityCompat.START);
+    }
+
+    // Close the Drawer
+    private void hideDrawer() {
+        drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        Log.v(TAG, "onNavigationItemSelected");
+        hideDrawer();
+        if(item.getItemId() != R.id.item_about) {
+            for (int i = 0; i < 5; i++) {
+                navigationView.getMenu().getItem(0).getSubMenu().getItem(i).setChecked(false);
+            }
+            item.setChecked(true);
+        }
+        switch (item.getItemId()){
+            case R.id.item_popular:
+                changeMovieList(MovieDbOrgApiService.SORT_BY_POPULAR);
+                break;
+            case R.id.item_top_rated:
+                changeMovieList(MovieDbOrgApiService.SORT_BY_TOP_RATED);
+                break;
+            case R.id.item_now_playing:
+                changeMovieList(MovieDbOrgApiService.SORT_BY_NOW_PLAYING);
+                break;
+            case R.id.item_upcoming:
+                changeMovieList(MovieDbOrgApiService.SORT_BY_UPCOMING);
+                break;
+            case R.id.item_favorite:
+//                Toast.makeText(this,"Favorite Selected",Toast.LENGTH_SHORT).show();
+                changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
+                break;
+            case R.id.item_about:
+                Toast.makeText(this, "Open About App Page", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
+    }
 }

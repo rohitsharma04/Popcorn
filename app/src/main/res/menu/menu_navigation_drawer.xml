@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--The drawer items below have been categorized according to headers-->
+    <item
+        android:id="@+id/navigation_item_menu"
+        android:title="@string/sort_movies">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/item_popular"
+                    android:title="@string/sort_popular"
+                    android:icon="@drawable/popular_icon"/>
+                <item
+                    android:id="@+id/item_top_rated"
+                    android:title="@string/sort_top_rated"
+                    android:icon="@drawable/top_icon"/>
+                <item
+                    android:id="@+id/item_now_playing"
+                    android:title="@string/sort_now_playing"
+                    android:icon="@drawable/play_icon"/>
+                <item
+                    android:id="@+id/item_upcoming"
+                    android:title="@string/sort_upcoming"
+                    android:icon="@drawable/upcoming_icon"/>
+                <item
+                    android:id="@+id/item_favorite"
+                    android:title="@string/sort_favorite"
+                    android:icon="@android:drawable/star_big_on"/>
+
+            </group>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/item_about"
+        android:title="@string/about_app"
+        android:icon="@drawable/about_icon"/>
+</menu>
