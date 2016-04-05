@@ -6,8 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.support.design.widget.CollapsingToolbarLayout;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.CardView;
@@ -35,8 +36,8 @@ import com.bitshifters.rohit.popcorn.api.Review;
 import com.bitshifters.rohit.popcorn.api.ReviewServiceResponse;
 import com.bitshifters.rohit.popcorn.api.Video;
 import com.bitshifters.rohit.popcorn.api.VideoServiceResponse;
-import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
+import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.ReviewTableMeta;
 import com.bitshifters.rohit.popcorn.data.VideoTableMeta;
 import com.bitshifters.rohit.popcorn.util.Utility;
@@ -51,8 +52,6 @@ import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by rohit on 29/3/16.
@@ -101,7 +100,7 @@ public class MovieDetailFragment extends Fragment {
         reviews = new ArrayList<>();
 
         if (getArguments().containsKey(ARG_MOVIE)) {
-            mMovie = (Movie) getArguments().getParcelable(ARG_MOVIE);
+            mMovie = getArguments().getParcelable(ARG_MOVIE);
         }
     }
 
@@ -199,7 +198,11 @@ public class MovieDetailFragment extends Fragment {
 
     public void updateShareIntent(){
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
+        }else{
+            shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, mMovie.getTitle());
         shareIntent.putExtra(Intent.EXTRA_TEXT,
@@ -304,13 +307,24 @@ public class MovieDetailFragment extends Fragment {
     }
 
     private void changeFavoriteButtonColor(){
-        if(isFavorite){
-            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
-            favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            if(isFavorite){
+                favoriteStar.setBackground(mContext.getDrawable(android.R.drawable.star_big_on));
+                favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
+            }else{
+                favoriteStar.setBackground(mContext.getDrawable(android.R.drawable.star_big_off));
+                favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
+            }
         }else{
-            favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_off));
-            favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
+            if(isFavorite){
+                favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_on));
+                favoriteText.setText(mContext.getResources().getText(R.string.remove_from_favorites));
+            }else{
+                favoriteStar.setBackground(mContext.getResources().getDrawable(android.R.drawable.star_big_off));
+                favoriteText.setText(mContext.getResources().getText(R.string.add_to_favorites));
+            }
         }
+
     }
 
     private void fetchVideoFromDb(){
@@ -390,7 +404,7 @@ public class MovieDetailFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... params) {
-                ArrayList<ContentValues> vidoesValues = new ArrayList<ContentValues>();
+                ArrayList<ContentValues> vidoesValues = new ArrayList<>();
                 for(Video video: videos){
                     ContentValues values = new ContentValues();
 
@@ -419,7 +433,7 @@ public class MovieDetailFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... params) {
-                ArrayList<ContentValues> reviewValues = new ArrayList<ContentValues>();
+                ArrayList<ContentValues> reviewValues = new ArrayList<>();
                 for(Review review: reviews){
                     ContentValues values = new ContentValues();
 

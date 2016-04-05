@@ -53,7 +53,7 @@ public class Utility {
         SharedPreferences preferences = context.getSharedPreferences(MY_PREFS,Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(SORT_PREFERENCE,sortBy);
-        editor.commit();
+        editor.apply();
     }
 
     public static String getPortraitPosterUrl(Context context, String relativeUrl){

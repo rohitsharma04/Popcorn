@@ -29,4 +29,6 @@
     <string name="drawer_close">Close</string>
     <string name="search_movies">search_movies</string>
     <string name="sort_movies">Sort Movies</string>
+
+    <string name="query_string" formatted="false">Results for %s</string>
 </resources>

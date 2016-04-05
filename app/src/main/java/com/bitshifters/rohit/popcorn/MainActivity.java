@@ -21,14 +21,13 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-
 import com.bitshifters.rohit.popcorn.adapter.InfiniteRecyclerOnScrollListener;
 import com.bitshifters.rohit.popcorn.adapter.MovieAdapter;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.MovieDbOrgApiService;
 import com.bitshifters.rohit.popcorn.api.MovieServiceResponse;
-import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.data.MovieProvider;
+import com.bitshifters.rohit.popcorn.data.MovieTableMeta;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
@@ -49,9 +48,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String ARG_MOVIES = "arg_movies";
+    private static final String ARG_SEARCH = "arg_search";
+    private static final String ARG_SEARCH_QUERY = "arg_search_query";
+    private static final String ARG_LAST_CLICKED = "arg_last_clicked";
     private static final int FIRST_PAGE = 1;
-    private static final String LAST_CLICKED = "last_clicked";
-    public static final int FAVORITE_MOVIES_LOADER = 0;
+    private static final int FAVORITE_MOVIES_LOADER = 0;
 
     @Bind(R.id.toolbar) Toolbar toolbar;
     @Bind(R.id.pbProgressBar) ProgressBar progressBar;
@@ -61,10 +62,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Bind(R.id.nav_view) NavigationView navigationView;
 
     private boolean mTwoPane;
-    private boolean isSearch = false;
-
+    private boolean isSearch;
+    private String mQuery;
     private MovieAdapter mMovieAdapter;
-    private ArrayList<Movie> movies;
+    private ArrayList<Movie> mMovies;
     private InfiniteRecyclerOnScrollListener mInfiniteRecyclerOnScrollListener;
 
     @Override
@@ -72,9 +73,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        movies = new ArrayList<>();
+        mMovies = new ArrayList<>();
 
         ButterKnife.bind(this);
+
+        //Need this before Setting up adapter and Infinite Scroller
+        if(savedInstanceState != null && savedInstanceState.containsKey(ARG_SEARCH)){
+            isSearch = savedInstanceState.getBoolean(ARG_SEARCH);
+        }
 
         setToolbar();
         setToolbarSubtitle();
@@ -89,11 +95,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         //Restoring state on configuration change
         if(savedInstanceState != null && savedInstanceState.containsKey(ARG_MOVIES)) {
-            movies = savedInstanceState.getParcelableArrayList(ARG_MOVIES);
-            mMovieAdapter.changeDataSet(movies);
+            mMovies = savedInstanceState.getParcelableArrayList(ARG_MOVIES);
+            mMovieAdapter.changeDataSet(mMovies);
 
-            if(savedInstanceState.containsKey(LAST_CLICKED)) {
-                mMovieAdapter.lastClicked = savedInstanceState.getInt(LAST_CLICKED);
+            if(savedInstanceState.containsKey(ARG_LAST_CLICKED)) {
+                mMovieAdapter.lastClicked = savedInstanceState.getInt(ARG_LAST_CLICKED);
+            }
+            if(savedInstanceState.containsKey(ARG_SEARCH_QUERY)){
+                mQuery = savedInstanceState.getString(ARG_SEARCH_QUERY);
+                if(mQuery != null)
+                toolbar.setSubtitle(
+                        String.format(getResources().getString(R.string.query_string),mQuery));
             }
 
         }else{
@@ -109,8 +121,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(ARG_MOVIES, movies);
-        outState.putInt(LAST_CLICKED, mMovieAdapter.lastClicked);
+        outState.putParcelableArrayList(ARG_MOVIES, mMovies);
+        outState.putInt(ARG_LAST_CLICKED, mMovieAdapter.lastClicked);
+        outState.putBoolean(ARG_SEARCH, isSearch);
+        outState.putString(ARG_SEARCH_QUERY, mQuery);
     }
 
     @Override
@@ -149,10 +163,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public boolean onNavigationItemSelected(MenuItem item) {
         Log.v(TAG, "onNavigationItemSelected");
         hideDrawer();
-        if(item.getItemId() != R.id.item_about) {
-            uncheckAllNavigationMenu();
-            item.setChecked(true);
-        }
         switch (item.getItemId()){
             case R.id.item_popular:
                 changeMovieList(MovieDbOrgApiService.SORT_BY_POPULAR);
@@ -176,11 +186,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return true;
     }
 
-    private void uncheckAllNavigationMenu(){
-        for (int i = 0; i < 5; i++) {
-            navigationView.getMenu().getItem(0).getSubMenu().getItem(i).setChecked(false);
-        }
-    }
+
 
     public boolean ismTwoPane() {
         return mTwoPane;
@@ -195,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void setToolbarSubtitle(){
 
-        switch (Utility.getSortPreference(getApplication())){
+        switch (Utility.getSortPreference(this)){
             case MovieDbOrgApiService.SORT_BY_POPULAR:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_popular));
                 break;
@@ -230,7 +236,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         recyclerView.setLayoutManager(layoutManager);
 
-        if (!Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)) {
+        //If not Search and Not Favorite then set Infinite Scroller
+        if (!isSearch && !Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)) {
             recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
         }
 
@@ -248,6 +255,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         drawerToggle.syncState();
 
         //Setting Initial Check Mark
+        if (!isSearch) {
+            checkSelectedNavigationMenu();
+        }
+    }
+
+    private void checkSelectedNavigationMenu(){
         switch (Utility.getSortPreference(this)){
             case MovieDbOrgApiService.SORT_BY_POPULAR:
                 navigationView.getMenu().getItem(0).getSubMenu().getItem(0).setChecked(true);
@@ -267,6 +280,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    private void uncheckAllNavigationMenu(){
+        for (int i = 0; i < 5; i++) {
+            navigationView.getMenu().getItem(0).getSubMenu().getItem(i).setChecked(false);
+        }
+    }
+
     private void showDrawer() {
         drawerLayout.openDrawer(GravityCompat.START);
     }
@@ -281,16 +300,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                uncheckAllNavigationMenu();
                 isSearch = true;
+                mQuery = query;
+                uncheckAllNavigationMenu();
                 searchView.closeSearch();
-                movies.clear();
+                mMovies.clear();
                 mMovieAdapter.changeDataSet(new ArrayList<Movie>());
                 //Resetting the InfiniteScrollListener
                 mInfiniteRecyclerOnScrollListener.resetScrollSettings();
                 recyclerView.removeOnScrollListener(mInfiniteRecyclerOnScrollListener);
                 searchMovies(query);
-                toolbar.setSubtitle("Search Results for " + query);
+                toolbar.setSubtitle(
+                        String.format(getResources().getString(R.string.query_string),query));
                 return true;
             }
 
@@ -313,12 +334,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
     }
 
+    @Override
+    public void onBackPressed() {
+        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
+            hideDrawer();
+        }
+        else if (searchView.isSearchOpen()) {
+            searchView.closeSearch();
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
+
     public void changeMovieList(@MovieDbOrgApiService.SORT_BY String sortBy){
-        getSupportLoaderManager().destroyLoader(FAVORITE_MOVIES_LOADER);
+        //Setting isSearch value to false
         isSearch = false;
-        //Setting old list to null because of preference change
-        movies.clear();
-        mMovieAdapter.changeDataSet(new ArrayList<Movie>());
+        mQuery = null;
+        //resetting lastClicked
+        mMovieAdapter.lastClicked = MovieAdapter.INITIAL_POSITION;
+        //Destroying the old loader
+        getSupportLoaderManager().destroyLoader(FAVORITE_MOVIES_LOADER);
+        //Clearing old list
+        mMovies.clear();
+        mMovieAdapter.clearDataSet();
         //Saving the new preference
         Utility.saveSortPreference(this, sortBy);
         //Resetting the InfiniteScrollListener
@@ -332,9 +372,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             recyclerView.addOnScrollListener(mInfiniteRecyclerOnScrollListener);
             fetchMoviesBySortType(FIRST_PAGE);
         }
+        uncheckAllNavigationMenu();
+        checkSelectedNavigationMenu();
         setToolbarSubtitle();
-        //resetting lastClicked
-        mMovieAdapter.lastClicked = MovieAdapter.INITIAL_POSITION;
+
     }
 
 
@@ -360,12 +401,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             public void onResponse(Call<MovieServiceResponse> call, Response<MovieServiceResponse> response) {
-                List<Movie> movieList = new ArrayList<Movie>();
+                List<Movie> movieList = new ArrayList<>();
                 if (response.body() != null) {
                     movieList = response.body().getMovies();
                 }
-                //Saving the movies data for restoring instance
-                movies.addAll(movieList);
+                //Saving the mMovies data for restoring instance
+                mMovies.addAll(movieList);
                 if (!movieList.isEmpty()) {
                     if (page == FIRST_PAGE)
                         mMovieAdapter.changeDataSet(movieList);
@@ -388,22 +429,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Log.v(TAG, "Search Movies");
         showProgressBar();
 
-        @MovieDbOrgApiService.SORT_BY
-        String sortBy = Utility.getSortPreference(this);
-
         Call<MovieServiceResponse> call= Utility.getMovieDbOrgApiService()
                 .searchResult(MovieDbOrgApiService.API_KEY, query);
         call.enqueue(new Callback<MovieServiceResponse>() {
 
             @Override
             public void onResponse(Call<MovieServiceResponse> call, Response<MovieServiceResponse> response) {
-                List<Movie> movieList = new ArrayList<Movie>();
+                List<Movie> movieList = new ArrayList<>();
                 if (response.body() != null) {
                     movieList = response.body().getMovies();
                 }
-                //Saving the movies data for restoring instance
-                movies.clear();
-                movies.addAll(movieList);
+                //Saving the mMovies data for restoring instance
+                mMovies.clear();
+                mMovies.addAll(movieList);
                 if (!movieList.isEmpty()) {
                     mMovieAdapter.changeDataSet(movieList);
                 }
@@ -422,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void fetchMovieFromDb(Cursor cursor) {
         Log.v(TAG, "Fetch Movies From DB");
         showProgressBar();
-        movies.clear();
+        mMovies.clear();
         if(cursor != null) {
             while (cursor.moveToNext()) {
                 String posterPath = cursor.getString(MovieTableMeta.POSTER_PATH_ID);
@@ -434,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Float popularity = cursor.getFloat(MovieTableMeta.POPULARITY_ID);
                 Integer voteCount = cursor.getInt(MovieTableMeta.VOTE_COUNT_ID);
                 Float voteAverage = cursor.getFloat(MovieTableMeta.VOTE_AVERAGE_ID);
-                movies.add(new Movie(posterPath, overview, releaseDate, id,
+                mMovies.add(new Movie(posterPath, overview, releaseDate, id,
                         title, backdropPath, popularity, voteCount, voteAverage));
             }
             //Note to self : Never Close this Cursor Otherwise You'll waste 16 Hours
@@ -442,40 +480,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 //            cursor.close();
         }
         //Updating the adapter
-        mMovieAdapter.changeDataSet(movies);
+        mMovieAdapter.changeDataSet(mMovies);
         hideProgressBar();
     }
 
 
-    @Override
-    public void onBackPressed() {
-        if(drawerLayout.isDrawerOpen(GravityCompat.START)){
-            hideDrawer();
-        }
-        else if (searchView.isSearchOpen()) {
-            searchView.closeSearch();
-        }
-        else {
-            super.onBackPressed();
-        }
-    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.v(TAG, "onCreateLoader");
+//        Log.v(TAG, "onCreateLoader");
         return new CursorLoader(this, MovieProvider.MOVIES_URI, MovieTableMeta.COLUMNS,
                 null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.v(TAG,"onLoadFinished");
+//        Log.v(TAG,"onLoadFinished");
         fetchMovieFromDb(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Log.v(TAG, "onLoaderReset");
+       //Not used
     }
 
 

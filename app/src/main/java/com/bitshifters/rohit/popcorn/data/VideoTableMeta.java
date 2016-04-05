@@ -1,7 +1,5 @@
 package com.bitshifters.rohit.popcorn.data;
 
-import de.triplet.simpleprovider.Column;
-
 /**
  * Created by rohit on 4/4/16.
  */

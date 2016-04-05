@@ -6,7 +6,6 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class Movie implements Parcelable {
 
     @SerializedName("genre_ids")
     @Expose
-    public List<Integer> genreIds = new ArrayList<Integer>();
+    public List<Integer> genreIds = new ArrayList<>();
 
     @SerializedName("id")
     @Expose
@@ -114,7 +113,7 @@ public class Movie implements Parcelable {
         this.adult = (Boolean) in.readValue(Boolean.class.getClassLoader());
         this.overview = in.readString();
         this.releaseDate = in.readString();
-        this.genreIds = new ArrayList<Integer>();
+        this.genreIds = new ArrayList<>();
         in.readList(this.genreIds, Integer.class.getClassLoader());
         this.id = (Integer) in.readValue(Integer.class.getClassLoader());
         this.originalTitle = in.readString();

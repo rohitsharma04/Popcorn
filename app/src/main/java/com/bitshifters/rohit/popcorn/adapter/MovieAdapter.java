@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +30,7 @@ import butterknife.OnClick;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
         public static final int INITIAL_POSITION = 0;
 
-        public final List<Movie> mValues;
+        private final List<Movie> mValues;
         private MainActivity mMainActivity;
 
         public int lastClicked;
@@ -47,6 +46,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             View view = LayoutInflater.from(parent.getContext()).
                     inflate(R.layout.movie_list_content, parent, false);
             return new ViewHolder(view);
+        }
+
+        public void clearDataSet(){
+            mValues.clear();
+            notifyDataSetChanged();
         }
 
         //When Sorting criteria is changed

@@ -23,7 +23,7 @@ public class ReviewServiceResponse implements Parcelable {
 
     @SerializedName("results")
     @Expose
-    public List<Review> reviews = new ArrayList<Review>();
+    public List<Review> reviews = new ArrayList<>();
 
     @SerializedName("total_pages")
     @Expose

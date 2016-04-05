@@ -3,7 +3,6 @@ package com.bitshifters.rohit.popcorn.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,11 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bitshifters.rohit.popcorn.MainActivity;
-import com.bitshifters.rohit.popcorn.MovieDetailActivity;
-import com.bitshifters.rohit.popcorn.MovieDetailFragment;
 import com.bitshifters.rohit.popcorn.R;
-import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.api.Video;
 import com.bitshifters.rohit.popcorn.util.Utility;
 import com.squareup.picasso.Picasso;
@@ -90,7 +85,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.ViewHolder> 
         }
 
         @OnClick(R.id.ivVideoThumbnail)
-        public void onClick(View v) {
+        public void onClick() {
             Log.v("Adapter","Video Clicked");
             Uri videoUri = Uri.parse(Utility.getYoutubeVideoUrl(mItem.getKey()));
             Intent videoIntent = new Intent(Intent.ACTION_VIEW, videoUri);

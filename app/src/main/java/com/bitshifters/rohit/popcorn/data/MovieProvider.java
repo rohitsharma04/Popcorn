@@ -16,7 +16,7 @@ public class MovieProvider extends AbstractProvider {
 
     private static final int SCHEMA_VERSION = 2;
 
-    public static interface Path{
+    public interface Path{
         String MOVIES = "movies";
         String VIDEOS = "videos";
         String REVIEWS = "reviews";

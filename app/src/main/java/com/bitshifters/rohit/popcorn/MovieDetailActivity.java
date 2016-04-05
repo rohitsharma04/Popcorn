@@ -1,15 +1,10 @@
 package com.bitshifters.rohit.popcorn;
 
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.ShareActionProvider;
-import android.support.v7.widget.Toolbar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -30,7 +25,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     @Bind(R.id.detail_toolbar) Toolbar toolbar;
 
     private Movie mMovie;
-    private MovieDetailFragment fragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +38,16 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         //Restoring state of the Activity
         if (savedInstanceState != null && savedInstanceState.containsKey(MovieDetailFragment.ARG_MOVIE)) {
-            mMovie = (Movie) savedInstanceState.getParcelable(MovieDetailFragment.ARG_MOVIE);
+            mMovie = savedInstanceState.getParcelable(MovieDetailFragment.ARG_MOVIE);
 
         }else{
             //Creating Fragment and adding it to the activity
-            mMovie = (Movie) getIntent().getParcelableExtra(MovieDetailFragment.ARG_MOVIE);
+            mMovie = getIntent().getParcelableExtra(MovieDetailFragment.ARG_MOVIE);
 
             Bundle arguments = new Bundle();
             arguments.putParcelable(MovieDetailFragment.ARG_MOVIE, mMovie);
 
-            fragment = new MovieDetailFragment();
+            Fragment fragment = new MovieDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.movie_detail_container, fragment)
