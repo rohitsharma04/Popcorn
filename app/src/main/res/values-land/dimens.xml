@@ -8,4 +8,6 @@
 
     <integer name="number_of_stars">5</integer>
     <integer name="movie_list_gridview_rows">3</integer>
+
+    <dimen name="about_activity_padding">100dp</dimen>
 </resources>

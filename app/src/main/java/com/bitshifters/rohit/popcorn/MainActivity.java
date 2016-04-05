@@ -1,5 +1,6 @@
 package com.bitshifters.rohit.popcorn;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -159,6 +160,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             case R.id.action_sort_favorite:
                 changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
                 break;
+            case R.id.action_about:
+                Intent intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -184,7 +189,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 changeMovieList(MovieDbOrgApiService.SORT_BY_FAVORITE);
                 break;
             case R.id.item_about:
-                Toast.makeText(this, "Open About App Page", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "Open About App Page", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
                 break;
         }
         return true;

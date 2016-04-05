@@ -38,4 +38,11 @@
     <string name="overview">Overview</string>
     <string name="videos">Videos</string>
     <string name="review">Reviews</string>
+    <string name="about_text">This app helps users to discover popular, top rated, currently playing and
+        upcoming movies on the web.User can also search for movies. Save their favorite movies locally and access it offline. It displays a scrolling grid of movie trailers and launches
+        a details screen is launched whenever a particular movie is selected. Where users can watch trailers and read reviews about the movies.
+        Users can also share movie plots and trailers.</string>
+    <string name="app_name_secondary">Popular Movies App</string>
+    <string name="developed_by">developed by</string>
+    <string name="developer">Rohit Sharma</string>
 </resources>

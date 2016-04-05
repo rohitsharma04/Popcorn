@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.bitshifters.rohit.popcorn">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -31,10 +31,11 @@
         </activity>
 
         <provider
-            android:authorities="com.bitshifters.rohit.popcorn.data.MovieProvider"
             android:name=".data.MovieProvider"
-            android:exported="false"/>
+            android:authorities="com.bitshifters.rohit.popcorn.data.MovieProvider"
+            android:exported="false" />
 
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>
