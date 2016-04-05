@@ -45,4 +45,5 @@
     <string name="app_name_secondary">Popular Movies App</string>
     <string name="developed_by">developed by</string>
     <string name="developer">Rohit Sharma</string>
+    <string name="by_10" translatable="false">/10</string>
 </resources>
