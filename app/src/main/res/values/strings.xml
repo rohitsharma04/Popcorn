@@ -7,7 +7,8 @@
     <string name="release_date">22 March 2016</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="remove_from_favorites">Remove from Favorites</string>
-    <string name="rating" formatted="false">%.2f/10</string>
+    <string name="rating">8.41</string>
+    <string name="vote_count" formatted="false">(%d votes)</string>
 
     <string name="sort_by">Sort By</string>
     <string name="sort_popular">Popular</string>
@@ -32,6 +33,9 @@
 
     <string name="query_string" formatted="false">Results for %s</string>
     <string name="empty_favorite_movie_detail">Add Your Favorite Movies Here</string>
-    <string name="empty_other_movie_detail">Internet Connection Missing</string>
+    <string name="empty_other_movie_detail">Something went wrong</string>
     <string name="empty_movie_list_title">No Movies Found</string>
+    <string name="overview">Overview</string>
+    <string name="videos">Videos</string>
+    <string name="review">Reviews</string>
 </resources>

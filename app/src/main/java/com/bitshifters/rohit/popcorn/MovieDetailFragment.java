@@ -87,6 +87,7 @@ public class MovieDetailFragment extends Fragment {
     @Bind(R.id.ivPosterPortrait) ImageView posterPortrait;
     @Bind(R.id.ibtnFavorite) ImageButton favoriteStar;
     @Bind(R.id.tvFavoriteText) TextView favoriteText;
+    @Bind(R.id.tvVoteCount) TextView voteCount;
 
     public MovieDetailFragment() {
         setHasOptionsMenu(true);
@@ -170,8 +171,10 @@ public class MovieDetailFragment extends Fragment {
         title.setText(mMovie.getTitle());
         releaseDate.setText(Utility.getFormattedDate(mMovie.getReleaseDate()));
         overview.setText(mMovie.getOverview());
-        voteAverage.setRating(mMovie.getVoteAverage() / 2);
-        voteAverageText.setText(getResources().getString(R.string.rating, mMovie.getVoteAverage()));
+        voteAverage.setRating(mMovie.getVoteAverage());
+        voteAverageText.setText(mMovie.getVoteAverage().toString());
+        voteCount.setText(String.format(getResources().
+                getString(R.string.vote_count,mMovie.getVoteCount())));
 
         Picasso.with(mContext)
                 .load(Utility.getPortraitPosterUrl(getActivity(),mMovie.getPosterPath()))

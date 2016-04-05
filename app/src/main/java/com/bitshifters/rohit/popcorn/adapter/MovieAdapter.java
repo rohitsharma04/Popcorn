@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bitshifters.rohit.popcorn.MainActivity;
 import com.bitshifters.rohit.popcorn.MovieDetailActivity;
@@ -16,6 +17,7 @@ import com.bitshifters.rohit.popcorn.MovieDetailFragment;
 import com.bitshifters.rohit.popcorn.R;
 import com.bitshifters.rohit.popcorn.api.Movie;
 import com.bitshifters.rohit.popcorn.util.Utility;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -73,11 +75,36 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             holder.mItem = mValues.get(position);
             holder.position = position;
 
+            holder.mTitle.setText(holder.mItem.getTitle());
             //Loading Image
+            if (holder.mPosterPortrait == null) {
+                holder.mTitle.setVisibility(View.VISIBLE);
+            }
+
             Picasso.with(mMainActivity)
-                    .load(Utility.getPortraitPosterUrl(mMainActivity,holder.mItem.getPosterPath()))
-                    .error(R.drawable.portrait_poster_not_found)
-                    .into(holder.mPosterPortrait);
+                    .load(Utility.getPortraitPosterUrl(mMainActivity, holder.mItem.getPosterPath()))
+                    .into(holder.mPosterPortrait,
+                            new Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    //Setting poster visible
+                                    holder.mPosterPortrait.setVisibility(View.VISIBLE);
+                                    holder.mPosterPortrait.setAlpha(1.0f);
+                                    //Making title invisible
+                                    holder.mTitle.setVisibility(View.INVISIBLE);
+                                }
+
+                                @Override
+                                public void onError() {
+                                    //Setting poster not found image with opacity
+                                    holder.mPosterPortrait.setImageDrawable(
+                                            mMainActivity.getResources().getDrawable(R.drawable.poster_not_found));
+                                    holder.mPosterPortrait.setAlpha(0.5f);
+                                    //Making title visible
+                                    holder.mTitle.setVisibility(View.VISIBLE);
+                                }
+                            }
+                    );
 
             //For Two Pane View for first time setup
             if(mMainActivity.ismTwoPane() && position == this.lastClicked){
@@ -95,6 +122,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
             public Movie mItem;
             public int position;
             @Bind(R.id.ivPosterPortrait) ImageView mPosterPortrait;
+            @Bind(R.id.tvTitle) TextView mTitle;
 
             public ViewHolder(View view) {
                 super(view);
