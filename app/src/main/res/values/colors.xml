@@ -7,4 +7,6 @@
     <color name="red_500">#F44336</color>
     <color name="red_700">#D32F2F</color>
     <color name="blue_A100">#82B1FF</color>
+
+    <color name="blank_container_text">#BDBDBD</color>
 </resources>

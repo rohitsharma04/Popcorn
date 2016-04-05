@@ -55,6 +55,7 @@
             android:visibility="gone"
             android:indeterminate="true"/>
 
+        <include layout="@layout/empty_list_container"/>
         <include layout="@layout/movie_list" />
 
 

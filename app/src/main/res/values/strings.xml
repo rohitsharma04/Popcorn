@@ -31,4 +31,7 @@
     <string name="sort_movies">Sort Movies</string>
 
     <string name="query_string" formatted="false">Results for %s</string>
+    <string name="empty_favorite_movie_detail">Add Your Favorite Movies Here</string>
+    <string name="empty_other_movie_detail">Internet Connection Missing</string>
+    <string name="empty_movie_list_title">No Movies Found</string>
 </resources>

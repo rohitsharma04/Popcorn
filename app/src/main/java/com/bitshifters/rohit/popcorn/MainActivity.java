@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bitshifters.rohit.popcorn.adapter.InfiniteRecyclerOnScrollListener;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Bind(R.id.search_view) MaterialSearchView searchView;
     @Bind(R.id.drawer_layout) DrawerLayout drawerLayout;
     @Bind(R.id.nav_view) NavigationView navigationView;
+    @Bind(R.id.empty_list_container) View emptyListContainer;
+    @Bind(R.id.tvEmptyListContainerText) TextView emptyListDetail;
+
 
     private boolean mTwoPane;
     private boolean isSearch;
@@ -97,17 +101,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if(savedInstanceState != null && savedInstanceState.containsKey(ARG_MOVIES)) {
             mMovies = savedInstanceState.getParcelableArrayList(ARG_MOVIES);
             mMovieAdapter.changeDataSet(mMovies);
-
+            updateContainerState();
             if(savedInstanceState.containsKey(ARG_LAST_CLICKED)) {
                 mMovieAdapter.lastClicked = savedInstanceState.getInt(ARG_LAST_CLICKED);
             }
             if(savedInstanceState.containsKey(ARG_SEARCH_QUERY)){
                 mQuery = savedInstanceState.getString(ARG_SEARCH_QUERY);
-                if(mQuery != null)
-                toolbar.setSubtitle(
-                        String.format(getResources().getString(R.string.query_string),mQuery));
+                if(mQuery != null) {
+                    toolbar.setSubtitle(
+                            String.format(getResources().getString(R.string.query_string), mQuery));
+                }
             }
-
         }else{
             if (Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
                 getSupportLoaderManager().initLoader(FAVORITE_MOVIES_LOADER, null, this);
@@ -200,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void setToolbarSubtitle(){
-
         switch (Utility.getSortPreference(this)){
             case MovieDbOrgApiService.SORT_BY_POPULAR:
                 toolbar.setSubtitle(getResources().getString(R.string.sort_popular));
@@ -218,11 +221,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 toolbar.setSubtitle(getResources().getString(R.string.sort_favorite));
                 break;
         }
-
     }
 
     private void setRecyclerView() {
-
         GridLayoutManager layoutManager = new GridLayoutManager(this,
                 getResources().getInteger(R.integer.movie_list_gridview_rows));
 
@@ -255,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         drawerToggle.syncState();
 
         //Setting Initial Check Mark
+        uncheckAllNavigationMenu();
         if (!isSearch) {
             checkSelectedNavigationMenu();
         }
@@ -295,8 +297,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void setSearchView() {
+
         searchView.setEllipsize(true);
         searchView.setVoiceSearch(false);
+
         searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -317,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                //Do some magic
+                //Not Used
                 return false;
             }
         });
@@ -378,7 +382,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     }
 
-
     private void showProgressBar(){
         progressBar.setVisibility(View.VISIBLE);
     }
@@ -414,11 +417,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         mMovieAdapter.addDataSet(movieList);
                 }
                 hideProgressBar();
+                updateContainerState();
             }
 
             @Override
             public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
                 hideProgressBar();
+                updateContainerState();
                 Log.e(TAG, "Failed to Fetch Movies");
             }
         });
@@ -446,11 +451,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     mMovieAdapter.changeDataSet(movieList);
                 }
                 hideProgressBar();
+                updateContainerState();
             }
 
             @Override
             public void onFailure(Call<MovieServiceResponse> call, Throwable t) {
                 hideProgressBar();
+                updateContainerState();
                 Log.e(TAG, "Failed to Search Movies");
             }
         });
@@ -482,6 +489,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         //Updating the adapter
         mMovieAdapter.changeDataSet(mMovies);
         hideProgressBar();
+        updateContainerState();
     }
 
 
@@ -504,5 +512,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
        //Not used
     }
 
-
+    private void updateContainerState(){
+        if(mMovieAdapter.getItemCount() == 0){
+            if (Utility.getSortPreference(this).equals(MovieDbOrgApiService.SORT_BY_FAVORITE)){
+                emptyListDetail.setText(getResources().getString(R.string.empty_favorite_movie_detail));
+            }else{
+                emptyListDetail.setText(getResources().getString(R.string.empty_other_movie_detail));
+            }
+            emptyListContainer.setVisibility(View.VISIBLE);
+        }else{
+            emptyListContainer.setVisibility(View.GONE);
+        }
+    }
 }
