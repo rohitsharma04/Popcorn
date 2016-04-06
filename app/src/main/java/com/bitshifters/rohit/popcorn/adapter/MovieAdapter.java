@@ -83,6 +83,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder>{
 
             Picasso.with(mMainActivity)
                     .load(Utility.getPortraitPosterUrl(mMainActivity, holder.mItem.getPosterPath()))
+                    .placeholder(R.drawable.poster_portrait_placeholder)
                     .into(holder.mPosterPortrait,
                             new Callback() {
                                 @Override
