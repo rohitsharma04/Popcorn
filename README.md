@@ -1,4 +1,5 @@
 #Popcorn 
+[![Crates.io](https://img.shields.io/crates/l/rustc-serialize.svg?maxAge=2592000)]()
 ###Popular Movies App
 This is an android app which I made from scratch for Android Nanodegree Developer course. This app reveals the power of adaptive UI both for phone and tablet devices. This app also has additional features which were not the requirement for Nanodegree program. 
 
